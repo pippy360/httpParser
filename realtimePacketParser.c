@@ -63,7 +63,7 @@ int token_check(parserState_t *parserState, char *outputBuffer, char *token){
 }
 
 //this can only get hardcoded headers, to get more headers use a getHeader function on the fully downloaded header
-void process_byte(char byte, parserState_t* parserState, 
+void processHttpHeaderByte(char byte, parserState_t* parserState,
 				char *outputData, int outputDataMaxLength, int *outputDataLength){
 
 	int retVal, length;
@@ -178,6 +178,10 @@ void process_byte(char byte, parserState_t* parserState,
 			printf("hm.....hit packet end\n");
 			break;
 	}
+}
+
+void processHttpPayloadByte(){
+
 }
 
 //returns 0 if valid, non-0 otherwise
