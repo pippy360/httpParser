@@ -1,5 +1,8 @@
 #include "httpParserPayload.cpp"
 
+
+//TODO make sure to test 0\r\ndata....
+
 void testChunk(const char *chunk, long chunkSize){
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
 	PayloadParserStateEnum nextStateVal = CHUNKED_PAYLOAD_LENGTH_CHAR;
@@ -264,8 +267,127 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 
 }
 
+void checkCommonErrorStateValues(ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret){
+	if (ret.payloadParserStateEnum != ERROR_PAYLOAD_PARSER){
+		//fail()
+		printf("we got an error :( 2\n");
+	}
+	if (ret.isError != true){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+	if (ret.byteType != INVALID_CHAR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+}
+
 void getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors(){
 	//TODO:
+	PayLoadParserState tempState = testStructState;
+	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
+	PayloadParserStateEnum nextStateVal = testStructState.stateVal;
+
+	ret = getNextStateAndByteTypeForChunkedPacket(PAYLOAD_START, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_LENGTH_BYTE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_R, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N, '\0', 0, true);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N, '\0', -1, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != SERVER_ERROR_NEGATIVE_PAYLOAD_BYTES_REMAINING){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_DATA, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_DATA, '\0', -1, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != SERVER_ERROR_NEGATIVE_PAYLOAD_BYTES_REMAINING){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_DATA_END_NEW_LINE_R, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_NEW_LINE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_NEW_LINE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_LENGTH_CHAR, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != EXPECTED_CR_OR_LENGTH_BYTE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(CHUNKED_PAYLOAD_PACKET_END, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != PARSING_FINISHED_CANT_PROCESS_MORE_BYTES){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket(ERROR_PAYLOAD_PARSER, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != INPUT_STATE_WAS_ERROR_STATE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+
+	ret = getNextStateAndByteTypeForChunkedPacket((PayloadParserStateEnum) 9999999, '\0', 0, false);
+	checkCommonErrorStateValues(ret);
+	if(ret.errorState != BAD_STATE_VALUE){
+		//fail()
+		printf("we got an error :( 5\n");
+	}
+}
+
+void getNextStateAndByteTypeForChunkedPacket_test_error_strings(){
 }
 
 void chunkedPayloadParserProcessBuffer_test_simple() {
@@ -293,7 +415,7 @@ void main(){
 
 	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
 	chunkedPayloadParserProcessBuffer_test_simple();
-
+	getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
 	printf("done!\n");
 	return;
 }

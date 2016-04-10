@@ -22,6 +22,7 @@ long _chunkSizeStol(const char *str){
 //return 0 if success, non-0 otherwise
 //returns the error type, the error string, returns the byte type
 //this is just a reg-ex style check, doesn't handle a lot of cases
+//isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
 //---------------------------------------------------------------
 ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForChunkedPacket(
 	PayloadParserStateEnum stateVal, const char nextByte,
@@ -48,6 +49,8 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 	case CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N:
 		if (isLastChunkSizeZero && nextByte == '\r'){
 			return{ CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R, NEW_LINE_R, false, NO_ERROR, nullptr };
+		}else if(isLastChunkSizeZero){
+			return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
 		}
 		/* no break */
 		//continue on to CHUNKED_PAYLOAD_DATA...
