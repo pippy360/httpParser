@@ -3,8 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "httpParserCommon.h"//TODO rename
-#include "httpParserPayload.hpp"//TODO rename
+#include "../h/httpParserPayload.hpp"//TODO rename
 
 
 using namespace std;
@@ -28,7 +27,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 	PayloadParserStateEnum stateVal, const char nextByte,
 	const long remainingBytesInCurrentChunk, const int isLastChunkSizeZero){
 //---------------------------------------------------------------
-
+	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket output;
 	switch (stateVal)
 	{
 	case PAYLOAD_START:
@@ -67,7 +66,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 			}
 		}
 		else{
-			return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, false,
+			return { ERROR_PAYLOAD_PARSER, INVALID_CHAR, true,
 				SERVER_ERROR_NEGATIVE_PAYLOAD_BYTES_REMAINING,
 				PARSER_ERROR(SERVER_ERROR_NEGATIVE_PAYLOAD_BYTES_REMAINING) };
 		}
@@ -105,10 +104,10 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 			return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, true, EXPECTED_CR_OR_LENGTH_BYTE, PARSER_ERROR(EXPECTED_CR) };
 		}
 	case CHUNKED_PAYLOAD_PACKET_END:
-		return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, false, PARSING_FINISHED_CANT_PROCESS_MORE_BYTES,
+		return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, true, PARSING_FINISHED_CANT_PROCESS_MORE_BYTES,
 			PARSER_ERROR(PARSING_FINISHED_CANT_PROCESS_MORE_BYTES) };
 	case ERROR_PAYLOAD_PARSER:
-		return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, false, INPUT_STATE_WAS_ERROR_STATE,
+		return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, true, INPUT_STATE_WAS_ERROR_STATE,
 			PARSER_ERROR(INPUT_STATE_WAS_ERROR_STATE) };
 	default:
 		//throw an exception
@@ -161,6 +160,7 @@ int chunkedPayloadProcessByte(PayLoadParserState *currState, const char nextByte
 		break;
 	default:
 		//TODO error stuff
+		;
 	}
 
 	return 0;

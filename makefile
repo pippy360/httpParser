@@ -1,7 +1,6 @@
+all: payloadTest.out
+
+payloadTest.out: test/httpParserPayload_unitTest.cpp c/httpParserPayload.cpp
+	g++ -std=c++11 -g -O0 test/httpParserPayload_unitTest.cpp -o payloadTest.out 
 
 
-realtimePacketParser.o: httpProcessing/realtimePacketParser.c
-	gcc -g -O0 -c httpProcessing/realtimePacketParser.c
-
-createHTTPHeader.o: httpProcessing/createHTTPHeader.c
-	gcc -g -O0 -c httpProcessing/createHTTPHeader.c
