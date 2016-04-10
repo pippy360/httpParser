@@ -1,5 +1,6 @@
 #include "../h/httpParserCommon.h"
 #include "../h/httpParser.hpp"
+#include "../h/httpParserPayload.hpp"
 
 //returns 0 if success, non-0 otherwise
 int parseStatusLineWrapper(ParserOverviewState *state, const char *buffer,
@@ -21,6 +22,10 @@ int parseHeadersWrapper(ParserOverviewState *state, const char *buffer,
 int parsePayloadWrapper(ParserOverviewState *state, const char *buffer,
 		const int bufferLength, char **bufferEndPtr) {
 
+	HttpParserCallbackFunction *callbackFunctions = &(state->callbackFunctions);//TODO will this be passed by value or reference?
+	PayLoadParserState payloadParserState = state->payloadParserState;
+	httpPayloadParserProcessBuffer(payloadParserState, buffer,
+			bufferLength, bufferEndPtr, callbackFunctions);
 }
 
 //returns 0 if success, non-0 otherwise
