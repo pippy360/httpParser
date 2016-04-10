@@ -156,7 +156,10 @@ int chunkedPayloadProcessByte(PayLoadParserState *currState, const char nextByte
 }
 
 
-PayLoadParserState chunkedPayloadParserProcessBuffer(const PayLoadParserState state, const char *packetBuffer, const int packetBufferLength, const HttpParserCallbackFunction *callbackFunctions)
+PayLoadParserState chunkedPayloadParserProcessBuffer(
+		const PayLoadParserState state, const char *packetBuffer,
+		const int packetBufferLength,
+		const HttpParserCallbackFunction *callbackFunctions)
 {
 	PayLoadParserState nextState = state;
 	int i;
@@ -168,19 +171,24 @@ PayLoadParserState chunkedPayloadParserProcessBuffer(const PayLoadParserState st
 	return nextState;
 }
 
-PayLoadParserState contentLengthPayloadParserProcessBuffer(const PayLoadParserState state, const char *packetBuffer, const int packetBufferLength, const HttpParserCallbackFunction *callbackFunctions){
+PayLoadParserState contentLengthPayloadParserProcessBuffer(
+		const PayLoadParserState state, const char *packetBuffer,
+		const int packetBufferLength,
+		const HttpParserCallbackFunction *callbackFunctions) {
 	PayLoadParserState nextState = state;
 	int i;
 	for (i = 0; i < packetBufferLength; i++){
 		chunkedPayloadProcessByte(&nextState, packetBuffer[i]);
-		//check for erros
+		//check for errors
 		//callbackfunctions
 	}
 	return nextState;
 }
 
-PayLoadParserState httpPayloadParserProcessBuffer(const PayLoadParserState state, const char *packetBuffer, const int packetBufferLength)
-{
+//parserBufferEndPtr is
+PayLoadParserState httpPayloadParserProcessBuffer(
+		const PayLoadParserState state, const char *packetBuffer,
+		const int packetBufferLength, char *parserBufferEndPtr, HttpParserCallbackFunction *callbackFunctions) {
 	if (state.payloadType == CHUNKED_ENCODING_HTTP_PACKET){
 		return chunkedPayloadParserProcessBuffer(state, packetBuffer, packetBufferLength, nullptr);
 	}
@@ -192,37 +200,5 @@ PayLoadParserState httpPayloadParserProcessBuffer(const PayLoadParserState state
 		//REMOVE THIS LINE:
 		return contentLengthPayloadParserProcessBuffer(state, packetBuffer, packetBufferLength, nullptr);
 		//return ;
-	}
-}
-
-//handle all the mini parsers
-//returns a completely new state each time! no, it can't?
-//can handle a partial buffer
-//should this know about the partial buffer?
-void parseHttpPacketBuffer(const PayLoadParserState state, const char *packetBuffer, int packetBufferLength){
-	//clear error each time ??
-
-	//hm....do this until we finish parsing the buffer
-	while (/*were not at the end of the packet, and the state hasn't hit end*/ true){
-		/*
-		if (parserStage == enum_StatusLine){
-		//parse the statusLine
-		}
-		else if (parserStage == httpHeader){
-		//parse the header
-		}
-		else if (parserStage == httpPayload){
-		//parse the payload
-		}
-		else if (parserStage == error){
-		//handle error
-		}
-		else if (parserStage == end){
-		//do nothing
-		}
-		else{
-		//invalid parser stage
-		}
-		*/
 	}
 }

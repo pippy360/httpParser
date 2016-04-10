@@ -280,16 +280,19 @@ void chunkedPayloadParserProcessBuffer_test_simple() {
 	//test
 }
 
-void main(){
-
-	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
-	chunkedPayloadParserProcessBuffer_test_simple();
+void chunkedPayloadParserProcessBuffer_test_error_cases() {
 	//test the error states
 	{
 		//test 5\r\n\r\n !that should work !!
 		//test ...someData\r\n\r\n //that should NOT work
 		//test 0\r\ntest\r\n
 	}
+}
+
+void main(){
+
+	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
+	chunkedPayloadParserProcessBuffer_test_simple();
 
 	printf("done!\n");
 	return;

@@ -1,5 +1,8 @@
 #define PARSER_ERROR(VALUE) HTTPParserErrorStateErrorStrings[VALUE]
 #define MAX_CHUNK_SIZE_STR_BUFFER_LENGTH 40
+
+#include "httpParserCommon.h"
+
 typedef enum {
 	EXPECTED_CR,
 	EXPECTED_NEW_LINE,
@@ -83,7 +86,3 @@ typedef struct {
 	HTTPParserErrorState errorState;
 	const char *errorString;
 } ReturnValueOfGetNextStateAndByteTypeForChunkedPacket;
-
-typedef struct {
-
-} HttpParserCallbackFunction;
