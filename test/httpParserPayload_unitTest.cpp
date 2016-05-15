@@ -387,19 +387,49 @@ void getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors(){
 	}
 }
 
-void getNextStateAndByteTypeForChunkedPacket_test_error_strings(){
+void getNextStateAndByteTypeForChunkedPacket_test_error_strings() {
+	//test the returned error message
+
 }
 
-void chunkedPayloadParserProcessBuffer_test_simple() {
+void chunkedPayloadParserProcessByte_test_trivial_case() {
+	PayLoadParserState stateStruct;
+	char *packet;
+
+	packet = "3\r\nthi\r\ns is a packet";
+	stateStruct = testStructState;
+	chunkedPayloadParserProcessByte(&stateStruct, '\0');
+
+	packet = "3\r\nthi\r\ns is a packet";
+	stateStruct = testStructState;
+	chunkedPayloadParserProcessByte(&stateStruct, '\0');
+
+	packet = "3\r\nthi\r\ns is a packet";
+	stateStruct = testStructState;
+	chunkedPayloadParserProcessByte(&stateStruct, '\0');
+
+	packet = "3\r\nthi\r\ns is a packet";
+	stateStruct = testStructState;
+	chunkedPayloadParserProcessByte(&stateStruct, '\0');
+
+
+}
+
+//trivial test
+void chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case() {
 	PayLoadParserState stateStruct = testStructState;
 	char *packet = "3\r\nthi\r\ns is a packet";
 	chunkedPayloadParserProcessBuffer(stateStruct, packet, strlen(packet), nullptr);
 
-	//trivial test
 
-	//test the buffer overflows tests too
+}
 
-	//test
+//test the buffer overflows tests too
+void chunkedPayloadParserProcessBuffer_test_simple_test_buffer_tests() {
+	PayLoadParserState stateStruct = testStructState;
+	char *packet = "3\r\nthi\r\ns is a packet";
+	chunkedPayloadParserProcessBuffer(stateStruct, packet, strlen(packet), nullptr);
+
 }
 
 void chunkedPayloadParserProcessBuffer_test_error_cases() {
@@ -414,7 +444,7 @@ void chunkedPayloadParserProcessBuffer_test_error_cases() {
 int main(){
 
 	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
-	chunkedPayloadParserProcessBuffer_test_simple();
+	chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
 	getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
 	printf("done!\n");
 	return 0;

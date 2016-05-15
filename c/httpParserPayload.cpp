@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "../h/httpParserCommon.h"
 #include "../h/httpParserPayload.hpp"//TODO rename
 
 
@@ -27,7 +28,6 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 	PayloadParserStateEnum stateVal, const char nextByte,
 	const long remainingBytesInCurrentChunk, const int isLastChunkSizeZero){
 //---------------------------------------------------------------
-	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket output;
 	switch (stateVal)
 	{
 	case PAYLOAD_START:
@@ -113,6 +113,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 		//throw an exception
 		return{ ERROR_PAYLOAD_PARSER, INVALID_CHAR, true, BAD_STATE_VALUE, PARSER_ERROR(BAD_STATE_VALUE) };
 	}
+	//The code never makes it here
 }
 
 //returns 0 if success, non-0 otherwise
@@ -120,29 +121,27 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 //this function acts like a wrapper for that function, it only handles some logic that isn't
 //handled in "getNextStateAndByteTypeForChunkedPacket" for performance reasons
 //---------------------------------------------------------------
-int chunkedPayloadProcessByte(PayLoadParserState *currState, const char nextByte){
+int chunkedPayloadParserProcessByte(PayLoadParserState *currState, const char nextByte){
 //---------------------------------------------------------------
-	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket retStruct;
-	ChunkedPayloadByteType byteType;
-	PayloadParserStateEnum nextStateValue;
-
 	if (currState == nullptr){
 		//TODO return a bunch of a error stuff
 		return -1;
 	}
 
-	int isChunkSizeZero = (currState->currentChunkSize == 0);
+	const ReturnValueOfGetNextStateAndByteTypeForChunkedPacket retStruct;
+	const PayloadParserStateEnum nextStateValue;
+	const int isChunkSizeZero = (currState->currentChunkSize == 0);
 	retStruct = getNextStateAndByteTypeForChunkedPacket(currState->stateVal,
 			nextByte, currState->currentChunkSize, isChunkSizeZero);
+
 	currState->stateVal = retStruct.payloadParserStateEnum;
-	byteType = retStruct.byteType;
-	nextStateValue = retStruct.payloadParserStateEnum;
 
 	if (retStruct.isError){
 		//TODO return a bunch of error stuff
 		return -1;
 	}
 
+	nextStateValue = retStruct.payloadParserStateEnum;
 	switch(nextStateValue){
 	case CHUNKED_PAYLOAD_LENGTH_CHAR:
 		if (currState->chunkSizeStrCurrentLength + 2 < MAX_CHUNK_SIZE_STR_BUFFER_LENGTH){//+2 for new char and '\0'
@@ -152,10 +151,14 @@ int chunkedPayloadProcessByte(PayLoadParserState *currState, const char nextByte
 		}
 		else{
 			//TODO return a bunch of error stuff
+			//buffer error stuff here
 			return -1;
 		}
 		break;
 	case CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_R:
+		//TODO check for rollover
+		//TODO check for negative value
+		//TODO check all the buffers!
 		currState->currentChunkSize = _chunkSizeStol(currState->chunkSizeStrBuffer);
 		break;
 	default:
@@ -176,7 +179,7 @@ PayLoadParserState chunkedPayloadParserProcessBuffer(
 	PayLoadParserState nextState = state;
 	int i;
 	for (i = 0; i < packetBufferLength; i++){
-		chunkedPayloadProcessByte(&nextState, packetBuffer[i]);
+		chunkedPayloadParserProcessByte(&nextState, packetBuffer[i]);
 		//check for erros
 		//callbackFunctions
 	}
@@ -193,7 +196,7 @@ PayLoadParserState contentLengthPayloadParserProcessBuffer(
 	PayLoadParserState nextState = state;
 	int i;
 	for (i = 0; i < packetBufferLength; i++){
-		chunkedPayloadProcessByte(&nextState, packetBuffer[i]);
+		chunkedPayloadParserProcessByte(&nextState, packetBuffer[i]);
 		//check for errors
 		//callbackfunctions
 	}
