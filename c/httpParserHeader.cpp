@@ -6,21 +6,24 @@
 #include "../h/httpParserCommon.h"
 #include "../h/httpParserHeader.hpp"
 
-int _isNumber(char nextByte) {
+int _isNumber(const char nextByte) {
 	return nextByte >= '0' && nextByte <= '9';
 }
 
-int _isAlphaNumericUppercaseIncluded(char nextByte) {
+int _isAlphaNumericUppercaseIncluded(const char nextByte) {
 	return (nextByte >= '0' && nextByte <= '9')
 			|| (nextByte >= 'a' && nextByte <= 'z')
 			|| (nextByte >= 'A' && nextByte <= 'Z');
 }
 
-//returns 1 if it is A-Z, 0 if false
-int _isCapatialLetter(char nextByte) {
-	return (nextByte >= 'A' && nextByte <= 'Z');
+int _isValidPathCharacter(const char nextByte) {
+	return (nextByte == '/' || _isAlphaNumericUppercaseIncluded(nextByte));
 }
 
+//returns 1 if it is A-Z, 0 if false
+int _isCapitalLetter(const char nextByte) {
+	return (nextByte >= 'A' && nextByte <= 'Z');
+}
 
 //return 0 if success, non-0 otherwise
 //returns the error type, the error string, returns the byte type
@@ -30,10 +33,100 @@ int _isCapatialLetter(char nextByte) {
 ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineStateAndByteType(
 		HeaderParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
-	ReturnValueOfGetNextRequestStatusLineStateAndByteType output;
 	switch (stateVal) {
+	case HEADER_REQUEST_START:
+		if (_isCapitalLetter(nextByte)) {
+			return {HEADER_REQUEST_METHOD, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_METHOD:
+		if (_isCapitalLetter(nextByte)) {
+			return {HEADER_REQUEST_METHOD, false, NO_ERROR, nullptr};
+		} else if (nextByte == ' ') {
+			return {HEADER_REQUEST_SPACE_AFTER_METHOD, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_SPACE_AFTER_METHOD:
+		if (_isValidPathCharacter(nextByte)) {
+			return {HEADER_REQUEST_PATH, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_PATH:
+		if (_isValidPathCharacter(nextByte)) { //MUST NOT BE A SPACE (' ') !
+			return {HEADER_REQUEST_PATH, false, NO_ERROR, nullptr};
+		} else if (nextByte == ' ') {
+			return {HEADER_REQUEST_HTTP_VERSION_H, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_H:
+		if (nextByte == 'T') {
+			return {HEADER_REQUEST_HTTP_VERSION_T, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_T:
+		if (nextByte == 'T') {
+			return {HEADER_REQUEST_HTTP_VERSION_T_2, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_T_2:
+		if (nextByte == 'P') {
+			return {HEADER_REQUEST_HTTP_VERSION_P, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_P:
+		if (nextByte == '/') {
+			return {HEADER_REQUEST_HTTP_VERSION_SLASH, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_SLASH:
+		if (_isNumber(nextByte)) {
+			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER:
+		if (_isNumber(nextByte)) {
+			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+		} else if (nextByte == '.') {
+			return {HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
+		if (_isNumber(nextByte)) {
+			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER:
+		if (_isNumber(nextByte)) {
+			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+		} else if (nextByte == '\r') {
+			return {HEADER_REQUEST_NEW_LINE_R, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_NEW_LINE_R:
+		if (nextByte == '\n') {
+			return {HEADER_REQUEST_FINISHED_PARSING, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_REQUEST_FINISHED_PARSING:
+		//error
+	case ERROR_HEADER_REQUEST_PARSER:
+		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR, nullptr};
+
 	default:
-		return output;
+		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR, nullptr};
 	}
 	//The code never makes it here
 }
@@ -78,11 +171,11 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_T:
 		if (nextByte == 'T') {
-			return {HEADER_RESPONSE_HTTP_VERSION_T, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_T_2, false, NO_ERROR, nullptr};
 		} else {
 			//error
 		}
-	case HEADER_RESPONSE_HTTP_VERSION_T:
+	case HEADER_RESPONSE_HTTP_VERSION_T_2:
 		if (nextByte == 'P') {
 			return {HEADER_RESPONSE_HTTP_VERSION_P, false, NO_ERROR, nullptr};
 		} else {
@@ -223,39 +316,39 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 	return 0;
 }
 /*
-//return 0 if success, non-0 otherwise
-//returns the error type, the error string, returns the byte type
-//this is just a reg-ex style check, doesn't handle a lot of cases
-//isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
-//---------------------------------------------------------------
-ReturnValueOfGetNextStateAndByteType getNextInnerHeaderStateAndByteType(
-		HeaderParserStateEnum stateVal, const char nextByte) {
-//---------------------------------------------------------------
-	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket output;
-	switch (stateVal) {
-	default:
-		return output;
-	}
-	//The code never makes it here
-}
+ //return 0 if success, non-0 otherwise
+ //returns the error type, the error string, returns the byte type
+ //this is just a reg-ex style check, doesn't handle a lot of cases
+ //isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
+ //---------------------------------------------------------------
+ ReturnValueOfGetNextStateAndByteType getNextInnerHeaderStateAndByteType(
+ HeaderParserStateEnum stateVal, const char nextByte) {
+ //---------------------------------------------------------------
+ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket output;
+ switch (stateVal) {
+ default:
+ return output;
+ }
+ //The code never makes it here
+ }
 
-//returns 0 if success, non-0 otherwise
-//as much logic as possible has been extracted to the functional/pure function "getNextStateAndByteType",
-//this function acts like a wrapper for that function, it only handles some logic that isn't
-//handled in "getNextStateAndByteType" for performance reasons
-//---------------------------------------------------------------
-int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
-		const char nextByte) {
-//---------------------------------------------------------------
-	if (currState == nullptr) {
-		//TODO return a bunch of a error stuff
-		return -1;
-	}
+ //returns 0 if success, non-0 otherwise
+ //as much logic as possible has been extracted to the functional/pure function "getNextStateAndByteType",
+ //this function acts like a wrapper for that function, it only handles some logic that isn't
+ //handled in "getNextStateAndByteType" for performance reasons
+ //---------------------------------------------------------------
+ int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
+ const char nextByte) {
+ //---------------------------------------------------------------
+ if (currState == nullptr) {
+ //TODO return a bunch of a error stuff
+ return -1;
+ }
 
-	return 0;
-}
+ return 0;
+ }
 
-*/
+ */
 
 //returns 0 if success, non-0 otherwise
 //---------------------------------------------------------------
@@ -333,7 +426,7 @@ HeaderParserState anyHttpPacketHeaderParserParseBuffer(
 		int i;
 		for (i = 0; i < packetBufferLength;
 				++i, ++amountOfCurrentBufferParsed) {
-			if (_isCapatialLetter (nextByte)) {
+			if (_isCapitalLetter (nextByte)) {
 				const int length = state.firstFewBytesOfHttpPacketBufferLength;
 				if (length + 1 <= MAX_FIRST_FEW_BYTES_LENGTH) {	//+1 because of the '\0'
 					state.firstFewBytesOfHttpPacketBuffer[length];
