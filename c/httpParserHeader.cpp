@@ -270,8 +270,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		return -1;
 	}
 
-	ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct;
-	HeaderParserStateEnum nextStateValue;
+	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct;
+	const HeaderParserStateEnum nextStateValue;
 
 	retStruct = getNextResponseStatusLineStateAndByteType(currState->stateVal,
 			nextByte);
@@ -315,40 +315,81 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 
 	return 0;
 }
-/*
- //return 0 if success, non-0 otherwise
- //returns the error type, the error string, returns the byte type
- //this is just a reg-ex style check, doesn't handle a lot of cases
- //isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
- //---------------------------------------------------------------
- ReturnValueOfGetNextStateAndByteType getNextInnerHeaderStateAndByteType(
- HeaderParserStateEnum stateVal, const char nextByte) {
- //---------------------------------------------------------------
- ReturnValueOfGetNextStateAndByteTypeForChunkedPacket output;
- switch (stateVal) {
- default:
- return output;
- }
- //The code never makes it here
- }
 
- //returns 0 if success, non-0 otherwise
- //as much logic as possible has been extracted to the functional/pure function "getNextStateAndByteType",
- //this function acts like a wrapper for that function, it only handles some logic that isn't
- //handled in "getNextStateAndByteType" for performance reasons
- //---------------------------------------------------------------
- int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
- const char nextByte) {
- //---------------------------------------------------------------
- if (currState == nullptr) {
- //TODO return a bunch of a error stuff
- return -1;
- }
+//return 0 if success, non-0 otherwise
+//returns the error type, the error string, returns the byte type
+//this is just a reg-ex style check, doesn't handle a lot of cases
+//isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
+//---------------------------------------------------------------
+ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteType(
+		InnerHeadersParserStateEnum stateVal, const char nextByte) {
+//---------------------------------------------------------------
 
- return 0;
- }
+	switch (stateVal) {
+	case INNER_HEADER_START:
+		break;
+	case INNER_HEADER_NAME:
+		break;
+	case INNER_HEADER_COLON:
+		break;
+	case INNER_HEADER_VALUE:
+		break;
+	case HEADER_RESPONSE_NEW_LINE_R:
+		break;
+	case HEADER_RESPONSE_NEW_LINE_N:
+		break;
+	case HEADER_RESPONSE_FINAL_NEW_LINE_R:
+		break;
+	case INNER_HEADER_FINISHED_PARSING:
+		break;
+	case ERROR_INNER_HEADER_PARSER:
+		break;
+	default:
+	}
+	//The code never makes it here
+}
 
- */
+//returns 0 if success, non-0 otherwise
+//as much logic as possible has been extracted to the functional/pure function "getNextStateAndByteType",
+//this function acts like a wrapper for that function, it only handles some logic that isn't
+//handled in "getNextStateAndByteType" for performance reasons
+//---------------------------------------------------------------
+int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
+		const char nextByte) {
+//---------------------------------------------------------------
+
+	if (currState == nullptr) {
+		//TODO return a bunch of a error stuff
+		return -1;
+	}
+
+	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct;
+	const HeaderParserStateEnum nextStateValue;
+
+	retStruct = getNextInnerHeaderStateAndByteType(currState->innerHeadersParserState,
+			nextByte);
+
+	currState->innerHeadersParserState = retStruct.innerHeadersParserState;
+
+	switch(retStruct.innerHeadersParserState){
+	case INNER_HEADER_NAME:
+	case INNER_HEADER_COLON:
+		//buffer
+		break;
+	case INNER_HEADER_VALUE:
+	case HEADER_RESPONSE_NEW_LINE_R:
+		//buffer
+		break;
+	case INNER_HEADER_FINISHED_PARSING:
+		break;
+	default:
+		break;
+	}
+
+	//handle call back functions
+
+	return 0;
+}
 
 //returns 0 if success, non-0 otherwise
 //---------------------------------------------------------------
@@ -399,12 +440,11 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 					packetBuffer[i]);
 			break;
 		case HEADER_INNER_HEADERS:
-			//headerParserProcessInnerHeaderByte(&nextState, packetBuffer[i]);
+			headerParserProcessInnerHeaderByte(&nextState, packetBuffer[i]);
 			break;
 		default:
 			//TODO error
 		}
-
 		//TODO Handle call back functions
 	}
 	return nextState;

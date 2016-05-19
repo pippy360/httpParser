@@ -45,6 +45,19 @@ typedef enum {
 
 
 typedef enum {
+	INNER_HEADER_START,
+	INNER_HEADER_NAME,
+	INNER_HEADER_COLON,
+	INNER_HEADER_VALUE,
+	HEADER_RESPONSE_NEW_LINE_R,//\r
+	HEADER_RESPONSE_NEW_LINE_N,//\n
+	HEADER_RESPONSE_FINAL_NEW_LINE_R,//\r
+	INNER_HEADER_FINISHED_PARSING,
+	ERROR_INNER_HEADER_PARSER,
+} InnerHeadersParserStateEnum;
+
+
+typedef enum {
 	HEADER_REQUEST_STATUS_LINE,
 	HEADER_RESPONSE_STATUS_LINE,
 	HEADER_INNER_HEADERS
@@ -73,6 +86,7 @@ typedef struct {
 	int httpVersion;
 	StatusLineResponseHeaderParserStateEnum statusLineResponseParserState;
 	StatusLineRequestHeaderParserStateEnum statusLineRequestParserState;
+	InnerHeadersParserStateEnum innerHeadersParserState;
 	char firstFewBytesOfHttpPacketBuffer[MAX_FIRST_FEW_BYTES_LENGTH];//bytes for the request (GET, HEAD, PATCH) or the (HTTP) in (HTTP/1.1)
 	int firstFewBytesOfHttpPacketBufferLength;
 	HttpRequestMethod requestMethod;
@@ -102,4 +116,10 @@ typedef struct {
 	const char *errorString;
 } ReturnValueOfGetNextRequestStatusLineStateAndByteType;
 
-
+typedef struct {
+	InnerHeadersParserStateEnum innerHeadersParserState;
+	//RequestStatusLineByteType byteType; byte type is not used for the moment
+	int isError;
+	HTTPParserErrorState errorState;
+	const char *errorString;
+} ReturnValueOfGetNextInnerHeaderStateAndByteType;
