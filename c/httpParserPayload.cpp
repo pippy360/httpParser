@@ -40,14 +40,14 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 		}
 	case CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_R:
 		if (nextByte == '\n'){
-			return{ CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N, NEW_LINE_N, false, NO_ERROR, nullptr };
+			return{ CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N, CHUNKED_NEW_LINE_N, false, NO_ERROR, nullptr };
 		}
 		else{
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
 		}
 	case CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N:
 		if (isLastChunkSizeZero && nextByte == '\r'){
-			return{ CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R, NEW_LINE_R, false, NO_ERROR, nullptr };
+			return{ CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R, CHUNKED_NEW_LINE_R, false, NO_ERROR, nullptr };
 		}else if(isLastChunkSizeZero){
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
 		}
@@ -59,7 +59,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 		}
 		else if (remainingBytesInCurrentChunk == 0){
 			if (nextByte == '\r'){
-				return{ CHUNKED_PAYLOAD_DATA_END_NEW_LINE_R, NEW_LINE_R, false, NO_ERROR, nullptr };
+				return{ CHUNKED_PAYLOAD_DATA_END_NEW_LINE_R, CHUNKED_NEW_LINE_R, false, NO_ERROR, nullptr };
 			}
 			else{
 				return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
@@ -72,7 +72,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 		}
 	case CHUNKED_PAYLOAD_DATA_END_NEW_LINE_R:
 		if (nextByte == '\n'){
-			return{ CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N, NEW_LINE_N, false, NO_ERROR, nullptr };
+			return{ CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N, CHUNKED_NEW_LINE_N, false, NO_ERROR, nullptr };
 		}
 		else{
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_NEW_LINE,
@@ -87,7 +87,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 		}
 	case CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R:
 		if (nextByte == '\n'){
-			return{ CHUNKED_PAYLOAD_PACKET_END, NEW_LINE_N, false, NO_ERROR, nullptr };
+			return{ CHUNKED_PAYLOAD_PACKET_END, CHUNKED_NEW_LINE_N, false, NO_ERROR, nullptr };
 		}
 		else{
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_NEW_LINE,
@@ -98,7 +98,7 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 			return{ CHUNKED_PAYLOAD_LENGTH_CHAR, CHUNKED_LENGTH_BYTE, false, NO_ERROR, nullptr };
 		}
 		else if (nextByte == '\r'){
-			return{ CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_R, NEW_LINE_R, false, NO_ERROR, nullptr };
+			return{ CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_R, CHUNKED_NEW_LINE_R, false, NO_ERROR, nullptr };
 		}
 		else{
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR_OR_LENGTH_BYTE, PARSER_ERROR(EXPECTED_CR) };
@@ -128,10 +128,8 @@ int chunkedPayloadParserProcessByte(PayLoadParserState *currState, const char ne
 		return -1;
 	}
 
-	const ReturnValueOfGetNextStateAndByteTypeForChunkedPacket retStruct;
-	const PayloadParserStateEnum nextStateValue;
 	const int isChunkSizeZero = (currState->currentChunkSize == 0);
-	retStruct = getNextStateAndByteTypeForChunkedPacket(currState->stateVal,
+	const ReturnValueOfGetNextStateAndByteTypeForChunkedPacket retStruct = getNextStateAndByteTypeForChunkedPacket(currState->stateVal,
 			nextByte, currState->currentChunkSize, isChunkSizeZero);
 
 	currState->stateVal = retStruct.payloadParserStateEnum;
@@ -141,7 +139,7 @@ int chunkedPayloadParserProcessByte(PayLoadParserState *currState, const char ne
 		return -1;
 	}
 
-	nextStateValue = retStruct.payloadParserStateEnum;
+	const PayloadParserStateEnum nextStateValue = retStruct.payloadParserStateEnum;
 	switch(nextStateValue){
 	case CHUNKED_PAYLOAD_LENGTH_CHAR:
 		if (currState->chunkSizeStrCurrentLength + 2 < MAX_CHUNK_SIZE_STR_BUFFER_LENGTH){//+2 for new char and '\0'
