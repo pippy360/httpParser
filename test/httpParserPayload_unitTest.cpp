@@ -1,3 +1,5 @@
+#include "../include/gtest/gtest.h"
+
 #include "../c/httpParserPayload.cpp"
 
 
@@ -17,7 +19,7 @@ void testChunk(const char *chunk, long chunkSize){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_R){
+	if (ret.byteType != CHUNKED_NEW_LINE_R){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -32,7 +34,7 @@ void testChunk(const char *chunk, long chunkSize){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_N){
+	if (ret.byteType != CHUNKED_NEW_LINE_N){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -49,7 +51,7 @@ void testChunk(const char *chunk, long chunkSize){
 			//fail()
 			printf("we got an error :( 5\n");
 		}
-		if (ret.byteType != DATA_BYTE){
+		if (ret.byteType != CHUNKED_DATA_BYTE){
 			//fail()
 			printf("we got an error :( 5\n");
 		}
@@ -116,7 +118,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -133,7 +135,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -150,7 +152,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -167,7 +169,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -182,7 +184,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -200,7 +202,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != LENGTH_BYTE){
+	if (ret.byteType != CHUNKED_LENGTH_BYTE){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -276,13 +278,14 @@ void checkCommonErrorStateValues(ReturnValueOfGetNextStateAndByteTypeForChunkedP
 		//fail()
 		printf("we got an error :( _\n");
 	}
-	if (ret.byteType != INVALID_CHAR){
+	if (ret.byteType != CHUNKED_INVALID_CHAR){
 		//fail()
 		printf("we got an error :( __\n");
 	}
 }
 
-void getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors(){
+//getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors
+TEST(Nextchunk, Test){
 	//TODO:
 	PayLoadParserState tempState = testStructState;
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
@@ -416,11 +419,11 @@ void chunkedPayloadParserProcessByte_test_trivial_case() {
 }
 
 //trivial test
-void chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case() {
+//void chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case() {
+TEST(test, triv){
 	PayLoadParserState stateStruct = testStructState;
 	char *packet = "3\r\nthi\r\ns is a packet";
 	chunkedPayloadParserProcessBuffer(stateStruct, packet, strlen(packet), nullptr);
-
 
 }
 
@@ -444,8 +447,8 @@ void chunkedPayloadParserProcessBuffer_test_error_cases() {
 int main(){
 
 	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
-	chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
-	getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
+	//chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
+	//getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
 	printf("done!\n");
 	return 0;
 }

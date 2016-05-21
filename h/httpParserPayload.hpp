@@ -3,11 +3,11 @@
 #include "httpParserCommon.h"
 
 typedef enum{
-	NEW_LINE_R,//\r
-	NEW_LINE_N,//\n
-	DATA_BYTE,//BLOB DATA
-	LENGTH_BYTE,//Chunk length string char, example '9' from "\r\n9999\r\n"
-	INVALID_CHAR
+	CHUNKED_NEW_LINE_R,//\r
+	CHUNKED_NEW_LINE_N,//\n
+	CHUNKED_DATA_BYTE,//BLOB DATA
+	CHUNKED_LENGTH_BYTE,//Chunk length string char, example '9' from "\r\n9999\r\n"
+	CHUNKED_INVALID_CHAR
 } ChunkedPayloadByteType;
 
 typedef enum {
