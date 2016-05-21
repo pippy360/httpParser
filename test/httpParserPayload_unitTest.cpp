@@ -67,7 +67,7 @@ void testChunk(const char *chunk, long chunkSize){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_R){
+	if (ret.byteType != CHUNKED_NEW_LINE_R){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -82,7 +82,7 @@ void testChunk(const char *chunk, long chunkSize){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_N){
+	if (ret.byteType != CHUNKED_NEW_LINE_N){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -99,6 +99,8 @@ PayLoadParserState testStructState = {
 	0,
 	nullptr
 };
+
+
 
 const char *testPkt = "4\r\nWiki\r\n5\r\npedia\r\nE\r\nin\r\n\r\nchunks. \r\n11\r\n12345678901234567\r\n0\r\n\r\n";
 size_t testPktLen = std::strlen(testPkt);
@@ -217,7 +219,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_R){
+	if (ret.byteType != CHUNKED_NEW_LINE_R){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -232,7 +234,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_N){
+	if (ret.byteType != CHUNKED_NEW_LINE_N){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -247,7 +249,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_R){
+	if (ret.byteType != CHUNKED_NEW_LINE_R){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -262,7 +264,7 @@ void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
-	if (ret.byteType != NEW_LINE_N){
+	if (ret.byteType != CHUNKED_NEW_LINE_N){
 		//fail()
 		printf("we got an error :( 5\n");
 	}
@@ -444,11 +446,11 @@ void chunkedPayloadParserProcessBuffer_test_error_cases() {
 	}
 }
 
-int main(){
-
-	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
-	//chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
-	//getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
-	printf("done!\n");
-	return 0;
-}
+//int main(){
+//
+//	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
+//	//chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
+//	//getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
+//	printf("done!\n");
+//	return 0;
+//}
