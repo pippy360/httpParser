@@ -1,3 +1,5 @@
+#ifndef __HTTPPARSERCOMMON_H_INCLUDED__
+#define __HTTPPARSERCOMMON_H_INCLUDED__
 #define PARSER_ERROR(VALUE) HTTPParserErrorStateErrorStrings[VALUE]
 #define nullptr 0//TODO
 
@@ -50,4 +52,4 @@ typedef enum {
 	ERROR_REQUEST_BAD_REQUEST_METHOD
 } HttpRequestMethod;
 
-
+#endif //__HTTPPARSERCOMMON_H_INCLUDED__
