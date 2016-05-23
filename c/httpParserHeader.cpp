@@ -18,14 +18,15 @@ int _isAlphaNumericUppercaseIncluded(const char nextByte) {
 
 int _isValidPathCharacter(const char nextByte) {
 	//TODO rewrite, you should use a constant time lookup
-	char validChars[] = { '/', '\\', '-', '.', '_', '~', '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=', ':', '@', '%'};
+	char validChars[] = { '/', '\\', '-', '.', '_', '~', '!', '$', '&', '\'',
+			'(', ')', '*', '+', ',', ';', '=', ':', '@', '%' };
 
-	if(_isAlphaNumericUppercaseIncluded(nextByte)){
+	if (_isAlphaNumericUppercaseIncluded(nextByte)) {
 		return true;
 	}
 
-	for(int i=0; i<sizeof(validChars); i++){
-		if(nextByte == validChars[i]){
+	for (int i = 0; i < 20; i++) {
+		if (nextByte == validChars[i]) {
 			return true;
 		}
 	}
@@ -172,7 +173,7 @@ int headerParserProcessRequestStatusLineByte(HeaderParserState *currState,
 //isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
 //---------------------------------------------------------------
 ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLineStateAndByteType(
-		HeaderParserStateEnum stateVal, const char nextByte) {
+		StatusLineResponseHeaderParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
 	switch (stateVal) {
 	case HEADER_RESPONSE_START:
@@ -235,7 +236,7 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		}
 	case HEADER_RESPONSE_SPACE_AFTER_VERSION:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR, nullptr};
 		} else {
 			//error
 		}
@@ -289,8 +290,9 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		return -1;
 	}
 
-	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct = getNextResponseStatusLineStateAndByteType(currState->stateVal,
-			nextByte);
+	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct =
+			getNextResponseStatusLineStateAndByteType(
+					currState->statusLineResponseParserState, nextByte);
 
 	//currState->stateVal = retStruct.statusLineParserStateEnum;
 
@@ -299,7 +301,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		return -1;
 	}
 
-	const StatusLineResponseHeaderParserStateEnum nextStateValue = retStruct.statusLineParserStateEnum;
+	const StatusLineResponseHeaderParserStateEnum nextStateValue =
+			retStruct.statusLineParserStateEnum;
 	switch (nextStateValue) {
 	case HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER:
 		//buffer
@@ -382,11 +385,12 @@ int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
 	}
 
 	//const HeaderParserStateEnum nextStateValue;
-	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct = getNextInnerHeaderStateAndByteType(currState->innerHeadersParserState,
-			nextByte);
+	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct =
+			getNextInnerHeaderStateAndByteType(
+					currState->innerHeadersParserState, nextByte);
 	currState->innerHeadersParserState = retStruct.innerHeadersParserState;
 
-	switch(retStruct.innerHeadersParserState){
+	switch (retStruct.innerHeadersParserState) {
 	case INNER_HEADER_NAME:
 	case INNER_HEADER_COLON:
 		//buffer
@@ -475,17 +479,18 @@ HeaderParserState anyHttpPacketHeaderParserParseBuffer(
 //---------------------------------------------------------------
 
 //Check if we actually need to do any of the below, maybe this isn't a bad a case!
-	HttpRequestOrResponseType packetType;//TODO CONST
+	HttpRequestOrResponseType packetType; //TODO CONST
 	HeaderParserState nextState = state;
-	int amountOfCurrentBufferParsed;//TODO CONST
+	int amountOfCurrentBufferParsed; //TODO CONST
 	{
 		//buffer the first few bytes, and then loop and call the parser
 		int i;
 		for (i = 0; i < packetBufferLength; i++) {
-			if (_isCapitalLetter (packetBuffer[i])) {
+			if (_isCapitalLetter(packetBuffer[i])) {
 				const int length = state.firstFewBytesOfHttpPacketBufferLength;
 				if (length + 1 <= MAX_FIRST_FEW_BYTES_LENGTH) {	//+1 because of the '\0'
-					nextState.firstFewBytesOfHttpPacketBuffer[length] = packetBuffer[i];
+					nextState.firstFewBytesOfHttpPacketBuffer[length] =
+							packetBuffer[i];
 					nextState.firstFewBytesOfHttpPacketBufferLength++;
 				} else {
 					//TODO RETURN ERROR BUFFER FULL!!! too many bytes at the start !!!
