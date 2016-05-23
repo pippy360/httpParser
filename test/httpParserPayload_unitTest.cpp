@@ -37,7 +37,7 @@ void testNonZeroChunk(const char *chunk, int noOfLengthChars, int sizeOfChunk){
 }
 
 
-TEST(sometqhign, testZeroChunk){
+TEST(getNextStateAndByteTypeForChunkedPacket_testing, test_zero_chunk){
 	const char *chunk = "0\r\n\r\n";
 	int validTypes[] = {
 			CHUNKED_PAYLOAD_LENGTH_CHAR, 			CHUNKED_LENGTH_BYTE,	1,
@@ -87,7 +87,7 @@ PayLoadParserState testStructState = {
 const char *testPkt = "4\r\nWiki\r\n5\r\npedia\r\nE\r\nin\r\n\r\nchunks. \r\n11\r\n12345678901234567\r\n0\r\n\r\n";
 size_t testPktLen = std::strlen(testPkt);
 //void getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet(){
-TEST(getNextStateAndByteTypeForChunkedPacket, test_trivial_case_valid_packet){
+TEST(getNextStateAndByteTypeForChunkedPacket_testing, test_trivial_cases_with_valid_packet){
 	//test all the states manually
 
 	testNonZeroChunkWrapper(testPkt, "4");
@@ -104,7 +104,7 @@ void checkCommonErrorStateValues(ReturnValueOfGetNextStateAndByteTypeForChunkedP
 }
 
 //getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors
-TEST(CHUNKED_PACKETS, TestingErrorStates){
+TEST(getNextStateAndByteTypeForChunkedPacket_testing, test_error_states){
 	PayLoadParserState tempState = testStructState;
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
 	PayloadParserStateEnum nextStateVal = testStructState.stateVal;
@@ -168,12 +168,14 @@ TEST(CHUNKED_PACKETS, TestingErrorStates){
 
 void getNextStateAndByteTypeForChunkedPacket_test_error_strings() {
 	//test the returned error message
-
+	//TODO
 }
 
+//TODO
 void chunkedPayloadParserProcessByte_test_trivial_case() {
 	PayLoadParserState stateStruct;
 	char *packet;
+
 
 	packet = "3\r\nthi\r\ns is a packet";
 	stateStruct = testStructState;
@@ -196,19 +198,20 @@ void chunkedPayloadParserProcessByte_test_trivial_case() {
 
 //trivial test
 //void chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case() {
-TEST(test, triv){
+TEST(chunkedPayloadParserProcessBuffer, test_simple_test_trivial_cases){
 	PayLoadParserState stateStruct = testStructState;
 	char *packet = "3\r\nthi\r\ns is a packet";
 	chunkedPayloadParserProcessBuffer(stateStruct, packet, strlen(packet), nullptr);
-
+	//TODO
 }
 
 //test the buffer overflows tests too
-void chunkedPayloadParserProcessBuffer_test_simple_test_buffer_tests() {
+//void chunkedPayloadParserProcessBuffer_test_simple_test_buffer_tests() {
+TEST(chunkedPayloadParserProcessBuffer, simple_buffer_tests){
 	PayLoadParserState stateStruct = testStructState;
 	char *packet = "3\r\nthi\r\ns is a packet";
 	chunkedPayloadParserProcessBuffer(stateStruct, packet, strlen(packet), nullptr);
-
+	//TODO
 }
 
 void chunkedPayloadParserProcessBuffer_test_error_cases() {
@@ -219,12 +222,3 @@ void chunkedPayloadParserProcessBuffer_test_error_cases() {
 		//test 0\r\ntest\r\n
 	}
 }
-
-//int main(){
-//
-//	getNextStateAndByteTypeForChunkedPacket_test_trivial_case_valid_packet();
-//	//chunkedPayloadParserProcessBuffer_test_simple_test_trivial_case();
-//	//getNextStateAndByteTypeForChunkedPacket_test_all_possible_errors();
-//	printf("done!\n");
-//	return 0;
-//}
