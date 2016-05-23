@@ -31,7 +31,7 @@ int _isCapitalLetter(const char nextByte) {
 //isLastChunkSizeZero needs to be a parameter because we don't parse the value of the size here
 //---------------------------------------------------------------
 ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineStateAndByteType(
-		HeaderParserStateEnum stateVal, const char nextByte) {
+		StatusLineRequestHeaderParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
 	switch (stateVal) {
 	case HEADER_REQUEST_START:
@@ -58,6 +58,12 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 		if (_isValidPathCharacter(nextByte)) { //MUST NOT BE A SPACE (' ') !
 			return {HEADER_REQUEST_PATH, false, NO_ERROR, nullptr};
 		} else if (nextByte == ' ') {
+			return {HEADER_SPACE_AFTER_PATH, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
+	case HEADER_SPACE_AFTER_PATH:
+		if (nextByte == 'H') {
 			return {HEADER_REQUEST_HTTP_VERSION_H, false, NO_ERROR, nullptr};
 		} else {
 			//error
@@ -252,6 +258,7 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		//return error
 	default:
 		//return error
+		;
 	}
 	//The code never makes it here
 }
@@ -270,20 +277,17 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		return -1;
 	}
 
-	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct;
-	const HeaderParserStateEnum nextStateValue;
-
-	retStruct = getNextResponseStatusLineStateAndByteType(currState->stateVal,
+	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct = getNextResponseStatusLineStateAndByteType(currState->stateVal,
 			nextByte);
 
-	currState->stateVal = retStruct.statusLineParserStateEnum;
+	//currState->stateVal = retStruct.statusLineParserStateEnum;
 
 	if (retStruct.isError) {
 		//TODO return a bunch of error stuff
 		return -1;
 	}
 
-	nextStateValue = retStruct.statusLineParserStateEnum;
+	const StatusLineResponseHeaderParserStateEnum nextStateValue = retStruct.statusLineParserStateEnum;
 	switch (nextStateValue) {
 	case HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER:
 		//buffer
@@ -311,6 +315,7 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		break;
 	default:
 		//TODO error stuff
+		;
 	}
 
 	return 0;
@@ -334,17 +339,18 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 		break;
 	case INNER_HEADER_VALUE:
 		break;
-	case HEADER_RESPONSE_NEW_LINE_R:
+	case INNER_HEADER_NEW_LINE_R:
 		break;
-	case HEADER_RESPONSE_NEW_LINE_N:
+	case INNER_HEADER_NEW_LINE_N:
 		break;
-	case HEADER_RESPONSE_FINAL_NEW_LINE_R:
+	case INNER_HEADER_FINAL_NEW_LINE_R:
 		break;
 	case INNER_HEADER_FINISHED_PARSING:
 		break;
 	case ERROR_INNER_HEADER_PARSER:
 		break;
 	default:
+		;
 	}
 	//The code never makes it here
 }
@@ -363,12 +369,9 @@ int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
 		return -1;
 	}
 
-	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct;
-	const HeaderParserStateEnum nextStateValue;
-
-	retStruct = getNextInnerHeaderStateAndByteType(currState->innerHeadersParserState,
+	//const HeaderParserStateEnum nextStateValue;
+	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct = getNextInnerHeaderStateAndByteType(currState->innerHeadersParserState,
 			nextByte);
-
 	currState->innerHeadersParserState = retStruct.innerHeadersParserState;
 
 	switch(retStruct.innerHeadersParserState){
@@ -444,6 +447,7 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 			break;
 		default:
 			//TODO error
+			;
 		}
 		//TODO Handle call back functions
 	}
@@ -459,24 +463,24 @@ HeaderParserState anyHttpPacketHeaderParserParseBuffer(
 //---------------------------------------------------------------
 
 //Check if we actually need to do any of the below, maybe this isn't a bad a case!
-	const HttpRequestOrResponseType packetType;
-	const int amountOfCurrentBufferParsed;
+	HttpRequestOrResponseType packetType;//TODO CONST
+	HeaderParserState nextState = state;
+	int amountOfCurrentBufferParsed;//TODO CONST
 	{
 		//buffer the first few bytes, and then loop and call the parser
 		int i;
-		for (i = 0; i < packetBufferLength;
-				++i, ++amountOfCurrentBufferParsed) {
-			if (_isCapitalLetter (nextByte)) {
+		for (i = 0; i < packetBufferLength; i++) {
+			if (_isCapitalLetter (packetBuffer[i])) {
 				const int length = state.firstFewBytesOfHttpPacketBufferLength;
 				if (length + 1 <= MAX_FIRST_FEW_BYTES_LENGTH) {	//+1 because of the '\0'
-					state.firstFewBytesOfHttpPacketBuffer[length];
-					state.firstFewBytesOfHttpPacketBufferLength++;
+					nextState.firstFewBytesOfHttpPacketBuffer[length] = packetBuffer[i];
+					nextState.firstFewBytesOfHttpPacketBufferLength++;
 				} else {
 					//TODO RETURN ERROR BUFFER FULL!!! too many bytes at the start !!!
 				}
-			} else if (nextByte == '/') {
+			} else if (packetBuffer[i] == '/') {
 				packetType = HTTP_PACKET_TYPE_RESPONSE;
-			} else if (nextByte == ' ') {
+			} else if (packetBuffer[i] == ' ') {
 				packetType = HTTP_PACKET_TYPE_REQUEST;
 			} else {
 				//ERROR BAD CHARACTER
@@ -487,7 +491,6 @@ HeaderParserState anyHttpPacketHeaderParserParseBuffer(
 
 	const int amountOfCurrentBufferLeftToParse = packetBufferLength
 			- amountOfCurrentBufferParsed;
-	HeaderParserState nextState = state;
 
 	//if (we exited the loop because we know the packet type and not because we hit the end of the buffer)
 	//then (call the parser on the buffer data and the rest of the buffer)
