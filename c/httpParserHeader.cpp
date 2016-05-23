@@ -347,22 +347,53 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 
 	switch (stateVal) {
 	case INNER_HEADER_START:
-		break;
+		if (_isAlphaNumericUppercaseIncluded(nextByte)) {
+			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_NAME:
-		break;
+		if (nextByte == ':'){
+			return {INNER_HEADER_COLON, false, NO_ERROR, nullptr};
+		}else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
+			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_COLON:
-		break;
+		//allow empty values
 	case INNER_HEADER_VALUE:
-		break;
+		if (nextByte == '\r'){
+			return {INNER_HEADER_NEW_LINE_R, false, NO_ERROR, nullptr};
+		}else if (_isAlphaNumericUppercaseIncluded(nextByte) || nextByte == ' ') {//TODO || nextByte == ' ' shouldn't be there!
+			return {INNER_HEADER_VALUE, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_NEW_LINE_R:
-		break;
+		if (nextByte == '\n') {
+			return {INNER_HEADER_NEW_LINE_N, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_NEW_LINE_N:
-		break;
+		if (nextByte == '\r') {
+			return {INNER_HEADER_FINAL_NEW_LINE_R, false, NO_ERROR, nullptr};
+		}else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
+			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_FINAL_NEW_LINE_R:
-		break;
+		if (nextByte == '\n') {
+			return {INNER_HEADER_FINISHED_PARSING, false, NO_ERROR, nullptr};
+		} else {
+			//error
+		}
 	case INNER_HEADER_FINISHED_PARSING:
-		break;
+		//error
 	case ERROR_INNER_HEADER_PARSER:
+		//error
 		break;
 	default:
 		;

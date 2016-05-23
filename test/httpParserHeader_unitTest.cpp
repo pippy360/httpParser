@@ -88,20 +88,20 @@ TEST(getNextResponseStatusLineStateAndByteType, simple_test_case){
 		const char *currPos = responseStatusLine;
 
 		int validTypes[] = {
-				HEADER_RESPONSE_HTTP_VERSION_H,		1,
-				HEADER_RESPONSE_HTTP_VERSION_T,		1,
-				HEADER_RESPONSE_HTTP_VERSION_T_2,	1,
-				HEADER_RESPONSE_HTTP_VERSION_P,		1,
-				HEADER_RESPONSE_HTTP_VERSION_SLASH,	1,
-				HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER,				1,
-				HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER,	1,
-				HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER,				1,
-				HEADER_RESPONSE_SPACE_AFTER_VERSION,		1,
-				HEADER_RESPONSE_STATUS_CODE,				3,
-				HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE,	1,
-				HEADER_RESPONSE_REASON_PHRASE,				2,
-				HEADER_RESPONSE_NEW_LINE_R,					1,
-				HEADER_RESPONSE_FINISHED_PARSING,			1
+			HEADER_RESPONSE_HTTP_VERSION_H,		1,
+			HEADER_RESPONSE_HTTP_VERSION_T,		1,
+			HEADER_RESPONSE_HTTP_VERSION_T_2,	1,
+			HEADER_RESPONSE_HTTP_VERSION_P,		1,
+			HEADER_RESPONSE_HTTP_VERSION_SLASH,	1,
+			HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER,				1,
+			HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER,	1,
+			HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER,				1,
+			HEADER_RESPONSE_SPACE_AFTER_VERSION,		1,
+			HEADER_RESPONSE_STATUS_CODE,				3,
+			HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE,	1,
+			HEADER_RESPONSE_REASON_PHRASE,				2,
+			HEADER_RESPONSE_NEW_LINE_R,					1,
+			HEADER_RESPONSE_FINISHED_PARSING,			1
 		};
 
 		ReturnValueOfGetNextResponseStatusLineStateAndByteType ret;
@@ -120,3 +120,73 @@ TEST(getNextResponseStatusLineStateAndByteType, simple_test_case){
 		}
 	}
 }
+
+
+TEST(getNextInnerHeaderStateAndByteType, simple_test_case){
+
+	{
+		const char *responseStatusLine = "tomwashere: doing this\r\n\r\n";
+		const char *currPos = responseStatusLine;
+
+		int validTypes[] = {
+			INNER_HEADER_NAME,				10,
+			INNER_HEADER_COLON,				1,
+			INNER_HEADER_VALUE,				11,
+			INNER_HEADER_NEW_LINE_R,		1,
+			INNER_HEADER_NEW_LINE_N,		1,
+			INNER_HEADER_FINAL_NEW_LINE_R,	1,
+			INNER_HEADER_FINISHED_PARSING,	1
+		};
+
+		ReturnValueOfGetNextInnerHeaderStateAndByteType ret;
+		InnerHeadersParserStateEnum nextStateVal = INNER_HEADER_START;
+
+		for(int i = 0; i < 7; i++){
+			for(int j=0; j < validTypes[i*2 + 1]; j++){
+				ret = getNextInnerHeaderStateAndByteType(nextStateVal, *currPos);
+				nextStateVal = ret.innerHeadersParserState;
+
+				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserState);
+				EXPECT_EQ(false				, ret.isError);
+
+				currPos++;
+			}
+		}
+	}
+
+	{
+		const char *responseStatusLine = "tomwashere: doing this\r\nanother: one\r\n\r\n";
+		const char *currPos = responseStatusLine;
+
+		int validTypes[] = {
+			INNER_HEADER_NAME,				10,
+			INNER_HEADER_COLON,				1,
+			INNER_HEADER_VALUE,				11,
+			INNER_HEADER_NEW_LINE_R,		1,
+			INNER_HEADER_NEW_LINE_N,		1,
+			INNER_HEADER_NAME,				7,
+			INNER_HEADER_COLON,				1,
+			INNER_HEADER_VALUE,				4,
+			INNER_HEADER_NEW_LINE_R,		1,
+			INNER_HEADER_NEW_LINE_N,		1,
+			INNER_HEADER_FINAL_NEW_LINE_R,	1,
+			INNER_HEADER_FINISHED_PARSING,	1
+		};
+
+		ReturnValueOfGetNextInnerHeaderStateAndByteType ret;
+		InnerHeadersParserStateEnum nextStateVal = INNER_HEADER_START;
+
+		for(int i = 0; i < 11; i++){
+			for(int j=0; j < validTypes[i*2 + 1]; j++){
+				ret = getNextInnerHeaderStateAndByteType(nextStateVal, *currPos);
+				nextStateVal = ret.innerHeadersParserState;
+
+				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserState);
+				EXPECT_EQ(false				, ret.isError);
+
+				currPos++;
+			}
+		}
+	}
+}
+
