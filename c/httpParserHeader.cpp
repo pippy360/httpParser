@@ -17,7 +17,19 @@ int _isAlphaNumericUppercaseIncluded(const char nextByte) {
 }
 
 int _isValidPathCharacter(const char nextByte) {
-	return (nextByte == '/' || _isAlphaNumericUppercaseIncluded(nextByte));
+	//TODO rewrite, you should use a constant time lookup
+	char validChars[] = { '/', '\\', '-', '.', '_', '~', '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=', ':', '@', '%'};
+
+	if(_isAlphaNumericUppercaseIncluded(nextByte)){
+		return true;
+	}
+
+	for(int i=0; i<sizeof(validChars); i++){
+		if(nextByte == validChars[i]){
+			return true;
+		}
+	}
+	return false;
 }
 
 //returns 1 if it is A-Z, 0 if false
