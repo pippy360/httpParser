@@ -26,7 +26,7 @@ long _chunkSizeStol(const char *str){
 //---------------------------------------------------------------
 ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForChunkedPacket(
 	PayloadParserStateEnum stateVal, const char nextByte,
-	const long remainingBytesInCurrentChunk, const int isLastChunkSizeZero){
+	const long remainingBytesInCurrentChunk){
 //---------------------------------------------------------------
 	switch (stateVal)
 	{
@@ -46,9 +46,9 @@ ReturnValueOfGetNextStateAndByteTypeForChunkedPacket getNextStateAndByteTypeForC
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
 		}
 	case CHUNKED_PAYLOAD_LENGTH_END_NEW_LINE_N:
-		if (isLastChunkSizeZero && nextByte == '\r'){
+		if (remainingBytesInCurrentChunk == 0 && nextByte == '\r'){
 			return{ CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R, CHUNKED_NEW_LINE_R, false, NO_ERROR, nullptr };
-		}else if(isLastChunkSizeZero){
+		}else if(remainingBytesInCurrentChunk == 0){
 			return{ ERROR_PAYLOAD_PARSER, CHUNKED_INVALID_CHAR, true, EXPECTED_CR, PARSER_ERROR(EXPECTED_CR) };
 		}
 		/* no break */
@@ -128,9 +128,8 @@ int chunkedPayloadParserProcessByte(PayLoadParserState *currState, const char ne
 		return -1;
 	}
 
-	const int isChunkSizeZero = (currState->currentChunkSize == 0);
 	const ReturnValueOfGetNextStateAndByteTypeForChunkedPacket retStruct = getNextStateAndByteTypeForChunkedPacket(currState->stateVal,
-			nextByte, currState->currentChunkSize, isChunkSizeZero);
+			nextByte, currState->currentChunkSize);
 
 	currState->stateVal = retStruct.payloadParserStateEnum;
 
