@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "../h/utils.h"
 #include "../h/httpParserCommon.h"
 #include "../h/httpParserHeader.hpp"
 
@@ -49,103 +50,103 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 	switch (stateVal) {
 	case HEADER_REQUEST_START:
 		if (_isCapitalLetter(nextByte)) {
-			return {HEADER_REQUEST_METHOD, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_METHOD, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_METHOD:
 		if (_isCapitalLetter(nextByte)) {
-			return {HEADER_REQUEST_METHOD, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_METHOD, false, NO_ERROR};
 		} else if (nextByte == ' ') {
-			return {HEADER_REQUEST_SPACE_AFTER_METHOD, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_SPACE_AFTER_METHOD, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_SPACE_AFTER_METHOD:
 		if (_isValidPathCharacter(nextByte)) {
-			return {HEADER_REQUEST_PATH, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_PATH, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_PATH:
 		if (_isValidPathCharacter(nextByte)) { //MUST NOT BE A SPACE (' ') !
-			return {HEADER_REQUEST_PATH, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_PATH, false, NO_ERROR};
 		} else if (nextByte == ' ') {
-			return {HEADER_SPACE_AFTER_PATH, false, NO_ERROR, nullptr};
+			return {HEADER_SPACE_AFTER_PATH, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_SPACE_AFTER_PATH:
 		if (nextByte == 'H') {
-			return {HEADER_REQUEST_HTTP_VERSION_H, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_H, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_H:
 		if (nextByte == 'T') {
-			return {HEADER_REQUEST_HTTP_VERSION_T, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_T, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_T:
 		if (nextByte == 'T') {
-			return {HEADER_REQUEST_HTTP_VERSION_T_2, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_T_2, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_T_2:
 		if (nextByte == 'P') {
-			return {HEADER_REQUEST_HTTP_VERSION_P, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_P, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_P:
 		if (nextByte == '/') {
-			return {HEADER_REQUEST_HTTP_VERSION_SLASH, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_SLASH, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_SLASH:
 		if (_isNumber(nextByte)) {
-			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else if (nextByte == '.') {
-			return {HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else if (nextByte == '\r') {
-			return {HEADER_REQUEST_NEW_LINE_R, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_NEW_LINE_R, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_NEW_LINE_R:
 		if (nextByte == '\n') {
-			return {HEADER_REQUEST_FINISHED_PARSING, false, NO_ERROR, nullptr};
+			return {HEADER_REQUEST_FINISHED_PARSING, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_REQUEST_FINISHED_PARSING:
 		//error
 	case ERROR_HEADER_REQUEST_PARSER:
-		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR, nullptr};
+		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR};
 
 	default:
-		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR, nullptr};
+		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR};
 	}
 	//The code never makes it here
 }
@@ -178,74 +179,74 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 	switch (stateVal) {
 	case HEADER_RESPONSE_START:
 		if (nextByte == 'H') {
-			return {HEADER_RESPONSE_HTTP_VERSION_H, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_H, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_H:
 		if (nextByte == 'T') {
-			return {HEADER_RESPONSE_HTTP_VERSION_T, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_T, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_T:
 		if (nextByte == 'T') {
-			return {HEADER_RESPONSE_HTTP_VERSION_T_2, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_T_2, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_T_2:
 		if (nextByte == 'P') {
-			return {HEADER_RESPONSE_HTTP_VERSION_P, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_P, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_P:
 		if (nextByte == '/') {
-			return {HEADER_RESPONSE_HTTP_VERSION_SLASH, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_SLASH, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_SLASH:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else if (nextByte == '.') {
-			return {HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else if (nextByte == ' ') {
-			return {HEADER_RESPONSE_SPACE_AFTER_VERSION, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_SPACE_AFTER_VERSION, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_SPACE_AFTER_VERSION:
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_STATUS_CODE:
 		//this should probably fource the status code to be 3 chars long
 		if (_isNumber(nextByte)) {
-			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR};
 		} else if (nextByte == ' ') {
-			return {HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE, false, NO_ERROR};
 		} else {
 			//error
 		}
@@ -253,15 +254,15 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 	case HEADER_RESPONSE_REASON_PHRASE:
 		//we accept extra spaces here!
 		if (_isAlphaNumericUppercaseIncluded(nextByte)) {
-			return {HEADER_RESPONSE_REASON_PHRASE, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_REASON_PHRASE, false, NO_ERROR};
 		} else if (nextByte == '\r') {
-			return {HEADER_RESPONSE_NEW_LINE_R, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_NEW_LINE_R, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case HEADER_RESPONSE_NEW_LINE_R:
 		if (nextByte == '\n') {
-			return {HEADER_RESPONSE_FINISHED_PARSING, false, NO_ERROR, nullptr};
+			return {HEADER_RESPONSE_FINISHED_PARSING, false, NO_ERROR};
 		} else {
 
 		}
@@ -308,7 +309,7 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		//buffer
 		break;
 	case HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
-
+		//safe strtol
 		break;
 	case HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER:
 		//buffer
@@ -348,15 +349,15 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 	switch (stateVal) {
 	case INNER_HEADER_START:
 		if (_isAlphaNumericUppercaseIncluded(nextByte)) {
-			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case INNER_HEADER_NAME:
 		if (nextByte == ':'){
-			return {INNER_HEADER_COLON, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_COLON, false, NO_ERROR};
 		}else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
-			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
 			//error
 		}
@@ -364,29 +365,29 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 		//allow empty values
 	case INNER_HEADER_VALUE:
 		if (nextByte == '\r'){
-			return {INNER_HEADER_NEW_LINE_R, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_NEW_LINE_R, false, NO_ERROR};
 		}else if (_isAlphaNumericUppercaseIncluded(nextByte) || nextByte == ' ') {//TODO || nextByte == ' ' shouldn't be there!
-			return {INNER_HEADER_VALUE, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_VALUE, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case INNER_HEADER_NEW_LINE_R:
 		if (nextByte == '\n') {
-			return {INNER_HEADER_NEW_LINE_N, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_NEW_LINE_N, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case INNER_HEADER_NEW_LINE_N:
 		if (nextByte == '\r') {
-			return {INNER_HEADER_FINAL_NEW_LINE_R, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_FINAL_NEW_LINE_R, false, NO_ERROR};
 		}else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
-			return {INNER_HEADER_NAME, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
 			//error
 		}
 	case INNER_HEADER_FINAL_NEW_LINE_R:
 		if (nextByte == '\n') {
-			return {INNER_HEADER_FINISHED_PARSING, false, NO_ERROR, nullptr};
+			return {INNER_HEADER_FINISHED_PARSING, false, NO_ERROR};
 		} else {
 			//error
 		}

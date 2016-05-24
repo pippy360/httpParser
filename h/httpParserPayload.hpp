@@ -37,7 +37,6 @@ typedef struct {
 	char chunkSizeStrBuffer[MAX_CHUNK_SIZE_STR_BUFFER_LENGTH];
 	int chunkSizeStrCurrentLength;
 	int isError;
-	const char *errorString;
 } PayLoadParserState;
 
 /*

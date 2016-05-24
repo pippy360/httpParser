@@ -79,8 +79,7 @@ PayLoadParserState testStructState = {
 	0,
 	"\0",
 	false,
-	0,
-	nullptr
+	0
 };
 
 

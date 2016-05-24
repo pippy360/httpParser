@@ -98,7 +98,6 @@ typedef struct {
 	char *innerHeaderValueStart;
 	int innerHeaderValueLength;
 	int isError;
-	const char *errorString;
 } HeaderParserState;
 
 typedef struct {
@@ -114,7 +113,6 @@ typedef struct {
 	//RequestStatusLineByteType byteType; byte type is not used for the moment
 	int isError;
 	HTTPParserErrorState errorState;
-	const char *errorString;
 } ReturnValueOfGetNextRequestStatusLineStateAndByteType;
 
 typedef struct {
@@ -122,5 +120,4 @@ typedef struct {
 	//RequestStatusLineByteType byteType; byte type is not used for the moment
 	int isError;
 	HTTPParserErrorState errorState;
-	const char *errorString;
 } ReturnValueOfGetNextInnerHeaderStateAndByteType;
