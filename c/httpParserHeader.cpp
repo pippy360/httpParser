@@ -306,7 +306,6 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 			retStruct.statusLineParserStateEnum;
 	switch (nextStateValue) {
 	case HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER:
-		//buffer
 		break;
 	case HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
 		//safe strtol
@@ -502,81 +501,80 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 	return nextState;
 }
 
-//TODO DOCUMENT ME!!!!!!!!!!!!
-//---------------------------------------------------------------
-HeaderParserState anyHttpPacketHeaderParserParseBuffer(
-		const HeaderParserState state, const char *packetBuffer,
-		const int packetBufferLength, char **parserBufferEndPtr,
-		HttpParserCallbackFunction *callbackFunctions) {
-//---------------------------------------------------------------
+////TODO DOCUMENT ME!!!!!!!!!!!!
+////---------------------------------------------------------------
+//HeaderParserState anyHttpPacketHeaderParserParseBuffer(
+//		const HeaderParserState state, const char *packetBuffer,
+//		const int packetBufferLength, char **parserBufferEndPtr,
+//		HttpParserCallbackFunction *callbackFunctions) {
+////---------------------------------------------------------------
+//
+////Check if we actually need to do any of the below, maybe this isn't a bad a case!
+//	HttpRequestOrResponseType packetType; //TODO CONST
+//	HeaderParserState nextState = state;
+//	int amountOfCurrentBufferParsed; //TODO CONST
+//	{
+//		//buffer the first few bytes, and then loop and call the parser
+//		int i;
+//		for (i = 0; i < packetBufferLength; i++) {
+//			if (_isCapitalLetter(packetBuffer[i])) {
+//				const int length = state.firstFewBytesOfHttpPacketBufferLength;
+//				if (length + 1 <= MAX_FIRST_FEW_BYTES_LENGTH) {	//+1 because of the '\0'
+//					nextState.firstFewBytesOfHttpPacketBuffer[length] =
+//							packetBuffer[i];
+//					nextState.firstFewBytesOfHttpPacketBufferLength++;
+//				} else {
+//					//TODO RETURN ERROR BUFFER FULL!!! too many bytes at the start !!!
+//				}
+//			} else if (packetBuffer[i] == '/') {
+//				packetType = HTTP_PACKET_TYPE_RESPONSE;
+//			} else if (packetBuffer[i] == ' ') {
+//				packetType = HTTP_PACKET_TYPE_REQUEST;
+//			} else {
+//				//ERROR BAD CHARACTER
+//			}
+//		}
+//		amountOfCurrentBufferParsed = i;
+//	}
+//
+//	const int amountOfCurrentBufferLeftToParse = packetBufferLength
+//			- amountOfCurrentBufferParsed;
+//
+//	//if (we exited the loop because we know the packet type and not because we hit the end of the buffer)
+//	//then (call the parser on the buffer data and the rest of the buffer)
+//	if (amountOfCurrentBufferParsed != packetBufferLength) {
+//
+//		if (packetType == HTTP_PACKET_TYPE_REQUEST) {
+//			//parse the buffered bytes
+//			nextState = httpHeaderParserProcessBuffer(nextState,
+//					state.firstFewBytesOfHttpPacketBuffer,
+//					state.firstFewBytesOfHttpPacketBufferLength,
+//					parserBufferEndPtr, callbackFunctions,
+//					HTTP_PACKET_TYPE_REQUEST);
+//
+//			//then parse the rest of the buffer
+//			nextState = httpHeaderParserProcessBuffer(nextState,
+//					packetBuffer + amountOfCurrentBufferParsed,
+//					amountOfCurrentBufferLeftToParse, parserBufferEndPtr,
+//					callbackFunctions, HTTP_PACKET_TYPE_REQUEST);
+//
+//		} else if (packetType == HTTP_PACKET_TYPE_RESPONSE) {
+//			//parse the buffered bytes
+//			nextState = httpHeaderParserProcessBuffer(nextState,
+//					state.firstFewBytesOfHttpPacketBuffer,
+//					state.firstFewBytesOfHttpPacketBufferLength,
+//					parserBufferEndPtr, callbackFunctions,
+//					HTTP_PACKET_TYPE_RESPONSE);
+//
+//			//then parse the rest of the buffer
+//			nextState = httpHeaderParserProcessBuffer(nextState,
+//					packetBuffer + amountOfCurrentBufferParsed,
+//					amountOfCurrentBufferLeftToParse, parserBufferEndPtr,
+//					callbackFunctions, HTTP_PACKET_TYPE_RESPONSE);
+//		}
+//	}
+//
+//	return nextState;
+//}
 
-//Check if we actually need to do any of the below, maybe this isn't a bad a case!
-	HttpRequestOrResponseType packetType; //TODO CONST
-	HeaderParserState nextState = state;
-	int amountOfCurrentBufferParsed; //TODO CONST
-	{
-		//buffer the first few bytes, and then loop and call the parser
-		int i;
-		for (i = 0; i < packetBufferLength; i++) {
-			if (_isCapitalLetter(packetBuffer[i])) {
-				const int length = state.firstFewBytesOfHttpPacketBufferLength;
-				if (length + 1 <= MAX_FIRST_FEW_BYTES_LENGTH) {	//+1 because of the '\0'
-					nextState.firstFewBytesOfHttpPacketBuffer[length] =
-							packetBuffer[i];
-					nextState.firstFewBytesOfHttpPacketBufferLength++;
-				} else {
-					//TODO RETURN ERROR BUFFER FULL!!! too many bytes at the start !!!
-				}
-			} else if (packetBuffer[i] == '/') {
-				packetType = HTTP_PACKET_TYPE_RESPONSE;
-			} else if (packetBuffer[i] == ' ') {
-				packetType = HTTP_PACKET_TYPE_REQUEST;
-			} else {
-				//ERROR BAD CHARACTER
-			}
-		}
-		amountOfCurrentBufferParsed = i;
-	}
-
-	const int amountOfCurrentBufferLeftToParse = packetBufferLength
-			- amountOfCurrentBufferParsed;
-
-	//if (we exited the loop because we know the packet type and not because we hit the end of the buffer)
-	//then (call the parser on the buffer data and the rest of the buffer)
-	if (amountOfCurrentBufferParsed != packetBufferLength) {
-
-		if (packetType == HTTP_PACKET_TYPE_REQUEST) {
-			//parse the buffered bytes
-			nextState = httpHeaderParserProcessBuffer(nextState,
-					state.firstFewBytesOfHttpPacketBuffer,
-					state.firstFewBytesOfHttpPacketBufferLength,
-					parserBufferEndPtr, callbackFunctions,
-					HTTP_PACKET_TYPE_REQUEST);
-
-			//then parse the rest of the buffer
-			nextState = httpHeaderParserProcessBuffer(nextState,
-					packetBuffer + amountOfCurrentBufferParsed,
-					amountOfCurrentBufferLeftToParse, parserBufferEndPtr,
-					callbackFunctions, HTTP_PACKET_TYPE_REQUEST);
-
-		} else if (packetType == HTTP_PACKET_TYPE_RESPONSE) {
-			//parse the buffered bytes
-			nextState = httpHeaderParserProcessBuffer(nextState,
-					state.firstFewBytesOfHttpPacketBuffer,
-					state.firstFewBytesOfHttpPacketBufferLength,
-					parserBufferEndPtr, callbackFunctions,
-					HTTP_PACKET_TYPE_RESPONSE);
-
-			//then parse the rest of the buffer
-			nextState = httpHeaderParserProcessBuffer(nextState,
-					packetBuffer + amountOfCurrentBufferParsed,
-					amountOfCurrentBufferLeftToParse, parserBufferEndPtr,
-					callbackFunctions, HTTP_PACKET_TYPE_RESPONSE);
-		}
-	}
-
-	return nextState;
-}
-
-//3 functions, 1 for request, 1 for response and 1 for unknown
 

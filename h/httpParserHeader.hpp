@@ -88,8 +88,6 @@ typedef struct {
 	StatusLineResponseHeaderParserStateEnum statusLineResponseParserState;
 	StatusLineRequestHeaderParserStateEnum statusLineRequestParserState;
 	InnerHeadersParserStateEnum innerHeadersParserState;
-	char firstFewBytesOfHttpPacketBuffer[MAX_FIRST_FEW_BYTES_LENGTH];//bytes for the request (GET, HEAD, PATCH) or the (HTTP) in (HTTP/1.1)
-	int firstFewBytesOfHttpPacketBufferLength;
 	HttpRequestMethod requestMethod;
 	char pathBuffer[MAX_PATH_BUFFER_LENGTH];
 	char innerHeaderBuffer[MAX_INNER_HEADER_BUFFER_LENGTH];
