@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "../h/utils.h"
+#include "../h/httpParserCommonUtils.h"
 #include "../h/httpParserCommon.h"
 #include "../h/httpParserPayload.hpp"
 
@@ -131,13 +132,11 @@ int chunkedPayloadParserProcessByte(PayLoadParserState *currState,
 		currState->remainingBytesInCurrentChunk--;
 		break;
 	case CHUNKED_PAYLOAD_LENGTH_CHAR:
-		if (currState->chunkSizeStrCurrentLength
-				+ 2< MAX_CHUNK_SIZE_STR_BUFFER_LENGTH) //+2 for the new char and '\0'
-				{
-			//strcpy_s(currState->chunkSizeStrBuffer, &nextByte);
-			strcat(currState->chunkSizeStrBuffer, &nextByte);
-			currState->chunkSizeStrCurrentLength++;
-		} else {
+		if (_addToHttpStateBufferWithErrorChecking(
+				currState->chunkSizeStrBuffer,
+				&(currState->chunkSizeStrCurrentLength),
+				MAX_CHUNK_SIZE_STR_BUFFER_LENGTH, nextByte) != 0)
+		{
 			currState->isError = true;
 			currState->errorState = CHUNK_SIZE_STRING_BUFFER_FULL;
 			return -1;
@@ -187,17 +186,16 @@ PayLoadParserState contentLengthPayloadParserProcessBuffer(
 		const int packetBufferLength, char **parserBufferEndPtr,
 		const HttpParserCallbackFunction *callbackFunctions) {
 //---------------------------------------------------------------
-	PayLoadParserState nextState = state;
 	int i;
 	for (i = 0; i < packetBufferLength; i++) {
-		chunkedPayloadParserProcessByte(&nextState, packetBuffer[i]);
+		//keep going we have stuff in the content length
 		//check for errors
 		//callbackfunctions
 	}
-	return nextState;
+	return state;
 }
 
-//parserBufferEndPtr is
+//TODO parserBufferEndPtr is ...
 //---------------------------------------------------------------
 PayLoadParserState httpPayloadParserProcessBuffer(
 		const PayLoadParserState state, const char *packetBuffer,
@@ -208,6 +206,7 @@ PayLoadParserState httpPayloadParserProcessBuffer(
 		return chunkedPayloadParserProcessBuffer(state, packetBuffer,
 				packetBufferLength, parserBufferEndPtr, nullptr);
 	} else if (state.payloadType == CONTENT_LENGTH_HTTP_PACKET) {
+		//TODO this line might not be needed, there's really nothing we need to do if it's a content length
 		return contentLengthPayloadParserProcessBuffer(state, packetBuffer,
 				packetBufferLength, parserBufferEndPtr, nullptr);
 	} else {

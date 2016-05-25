@@ -1,9 +1,14 @@
 #include "httpParserCommon.h"
 
-#define MAX_CHUNK_SIZE_STR_BUFFER_LENGTH 40
-#define MAX_PATH_BUFFER_LENGTH 1000
-#define MAX_INNER_HEADER_BUFFER_LENGTH 1000
-#define MAX_FIRST_FEW_BYTES_LENGTH 10
+#define MAX_CHUNK_SIZE_STR_BUFFER_LENGTH 		40
+#define MAX_PATH_BUFFER_LENGTH 					1000
+#define MAX_INNER_HEADER_BUFFER_LENGTH 			1000
+#define MAX_FIRST_FEW_BYTES_LENGTH 				10
+#define MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH 	10
+#define MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH 	10
+#define MAX_STATUS_CODE_BUFFER_LENGTH			4
+#define MAX_REASON_PHRASE_BUFFER_LENGTH			20
+
 
 typedef enum {
 	HEADER_RESPONSE_START,
@@ -96,6 +101,15 @@ typedef struct {
 	char *innerHeaderValueStart;
 	int innerHeaderValueLength;
 	int isError;
+	HTTPParserErrorState errorState;
+	char httpVersionFirstNumberBuffer[MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH];
+	int httpVersionFirstNumberBufferLength;
+	char httpVersionSecondNumberBuffer[MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH];
+	int httpVersionSecondNumberBufferLength;
+	char httpStatusCodeBuffer[MAX_STATUS_CODE_BUFFER_LENGTH];
+	int httpStatusCodeBufferLength;
+	char httpReasonPhraseBuffer[MAX_REASON_PHRASE_BUFFER_LENGTH];
+	int httpReasonPhraseBufferLength;
 } HeaderParserState;
 
 typedef struct {
