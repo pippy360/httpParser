@@ -1,5 +1,9 @@
+#ifndef __HTTPPARSERPAYLOAD_H_INCLUDED__
+#define __HTTPPARSERPAYLOAD_H_INCLUDED__
+
 #define MAX_CHUNK_SIZE_STR_BUFFER_LENGTH 40
 
+#include "httpCommon.h"
 #include "httpParserCommon.h"
 
 typedef enum{
@@ -21,24 +25,41 @@ typedef enum {
 	CHUNKED_PAYLOAD_PACKET_END_NEW_LINE_R,//	\r in \r\n0\r\n\r\n at the end of the encoding
 	CHUNKED_PAYLOAD_PACKET_END,//	\n after data
 	ERROR_PAYLOAD_PARSER
-} PayloadParserStateEnum;
-
-enum PayloadType{
-	CHUNKED_ENCODING_HTTP_PACKET,
-	CONTENT_LENGTH_HTTP_PACKET
-};
+} ChunkedPayloadParserStateEnum;
 
 typedef struct {
-	PayloadParserStateEnum stateVal;
-	PayloadType payloadType;
-	long totalBytesProcessedState;
-	long remainingBytesInCurrentChunk;
-	long currentChunkSize;
+	ChunkedPayloadParserStateEnum chunkedStateEnum;
 	char chunkSizeStrBuffer[MAX_CHUNK_SIZE_STR_BUFFER_LENGTH];
-	int chunkSizeStrCurrentLength;
+	int chunkSizeStrLength;
+	//const int maxSizeOfChunkSizeStrBuffer = MAX_CHUNK_SIZE_STR_BUFFER_LENGTH;FIXME
+	long currentChunkSize;
+	long remainingBytesInCurrentChunk;
+	//errors
 	int isError;
 	HTTPParserErrorState errorState;
-} PayLoadParserState;
+} PayloadParserStateChunkedPayloadState;
+
+typedef enum {
+	CHUNKED_ENCODING_HTTP_PACKET_PARSER,
+	CONTENT_LENGTH_HTTP_PACKET_PARSER,
+} CurrentActiveParserForPayloadType;
+
+typedef struct {
+
+} PayloadParserStateContentLengthPayloadState;
+
+typedef struct {
+	CurrentActiveParserForPayloadType payloadParser;
+	char *dataStart;
+	char *dataEnd;
+	int dataLength;
+	//subparsers
+	PayloadParserStateChunkedPayloadState chunkedParserState;
+	PayloadParserStateContentLengthPayloadState contentLengthParserState;
+	//errors
+	int isError;
+	HTTPParserErrorState errorState;
+} PayloadParserState;
 
 /*
 static const PayLoadParserState payLoadParserState_init = {
@@ -47,9 +68,11 @@ static const PayLoadParserState payLoadParserState_init = {
 */
 
 typedef struct {
-	PayloadParserStateEnum payloadParserStateEnum;
+	ChunkedPayloadParserStateEnum chunkedStateEnum;
 	ChunkedPayloadByteType byteType;
 	int isError;
 	HTTPParserErrorState errorState;
-	const char *errorString;
 } ReturnValueOfGetNextStateAndByteTypeForChunkedPacket;
+
+
+#endif //__HTTPPARSERPAYLOAD_H_INCLUDED__

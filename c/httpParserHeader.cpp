@@ -284,7 +284,7 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 //handled in "getNextStateAndByteType" for performance reasons
 //the first few bytes of the packet are handled by bufferAndThenParseFirstFewBytes()
 //---------------------------------------------------------------
-int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
+int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateResponse *currState,
 		const char nextByte) {
 //---------------------------------------------------------------
 	if (currState == nullptr) {
@@ -311,7 +311,7 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpVersionFirstNumberBuffer,
 				&(currState->httpVersionFirstNumberBufferLength),
-				MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH, nextByte) != 0) {
+				HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH, nextByte) != 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_VERSION_FIRST_NUMBER_BUFFER_FULL;
 			return -1;
@@ -325,7 +325,7 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpVersionSecondNumberBuffer,
 				&(currState->httpVersionSecondNumberBufferLength),
-				MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH, nextByte) != 0)
+				HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH, nextByte) != 0)
 		{
 			currState->isError = true;
 			currState->errorState = HTTP_VERSION_SECOND_NUMBER_BUFFER_FULL;
@@ -334,13 +334,16 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		break;
 	case HEADER_RESPONSE_SPACE_AFTER_VERSION:
 		//convert
+		printf("the http version is: http/%s.%s\n",
+				currState->httpVersionFirstNumberBuffer,
+				currState->httpVersionSecondNumberBuffer);
 		break;
 	case HEADER_RESPONSE_STATUS_CODE:
 		//buffer
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpStatusCodeBuffer,
 				&(currState->httpStatusCodeBufferLength),
-				MAX_STATUS_CODE_BUFFER_LENGTH, nextByte) != 0)
+				HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH, nextByte) != 0)
 		{
 			currState->isError = true;
 			currState->errorState = HTTP_STATUS_CODE_BUFFER_FULL;
@@ -348,14 +351,14 @@ int headerParserProcessResponseStatusLineByte(HeaderParserState *currState,
 		}
 		break;
 	case HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE:
-		//convert
+		printf("the status code is: %s\n", currState->httpStatusCodeBuffer);
 		break;
 	case HEADER_RESPONSE_REASON_PHRASE:
 		//buffer
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpReasonPhraseBuffer,
 				&(currState->httpReasonPhraseBufferLength),
-				MAX_REASON_PHRASE_BUFFER_LENGTH, nextByte) != 0) {
+				HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH, nextByte) != 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_REASON_PHRASE_BUFFER_FULL;
 			return -1;
@@ -517,16 +520,12 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 	int i;
 
 	for (i = 0; i < packetBufferLength; i++) {
-		switch (state.stateVal) {
-		case HEADER_REQUEST_STATUS_LINE:
+		switch (state.currentActiveHeaderParser) {
+		case HEADER_PARSER_STATUS_LINE:
 			headerParserProcessRequestStatusLineByte(&nextState,
 					packetBuffer[i]);
 			break;
-		case HEADER_RESPONSE_STATUS_LINE:
-			headerParserProcessResponseStatusLineByte(&nextState,
-					packetBuffer[i]);
-			break;
-		case HEADER_INNER_HEADERS:
+		case HEADER_PARSER_INNER_HEADERS:
 			headerParserProcessInnerHeaderByte(&nextState, packetBuffer[i]);
 			break;
 		default:

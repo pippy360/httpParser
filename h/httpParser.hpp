@@ -1,16 +1,18 @@
 #include "httpParserCommon.h"
 
 typedef enum {
-	//first byte of the input buffer is in...
-	HTTP_PACKET_STATUS_LINE,//...in the status line
-	HTTP_PACKET_HEADERS,//...in the header
-	HTTP_PACKET_PAYLOAD,//...in the payload
-	HTTP_PACKET_FINISHED
-} ParserOverviewStateEnum;
+	HEADER_PARSER_STATUS_LINE,
+	HEADER_PARSER_INNER_HEADERS
+} CurrentActiveParser;
 
 typedef struct {
-	ParserOverviewStateEnum stateEnum;
-	long bytesProcessed;//
-	PayLoadParserState payloadParserState;
-	HttpParserCallbackFunction callbackFunctions;
-} ParserOverviewState;
+	HttpPacketInfo httpInfo;
+	//Info for the sub-parsers
+	long totalBytesProcessedState;
+	CurrentActiveParser currentActiveParser;
+	HeaderParserState headerParserState;
+	PayloadParserState payloadState;
+	//errors
+	int isError;
+	HTTPParserErrorState errorState;
+} HttpParserState;

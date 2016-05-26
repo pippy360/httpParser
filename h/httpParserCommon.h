@@ -1,5 +1,8 @@
 #ifndef __HTTPPARSERCOMMON_H_INCLUDED__
 #define __HTTPPARSERCOMMON_H_INCLUDED__
+
+#include "httpCommon.h"
+
 #define PARSER_ERROR(VALUE) HTTPParserErrorStateErrorStrings[VALUE]
 #define nullptr 0//TODO
 
@@ -45,17 +48,14 @@ typedef struct {
 
 } HttpParserCallbackFunction;
 
-typedef enum {
-	REQUEST_GET,
-	REQUEST_HEAD,
-	REQUEST_POST,
-	REQUEST_PUT,
-	REQUEST_DELETE,
-	REQUEST_TRACE,
-	REQUEST_OPTIONS,
-	REQUEST_CONNECT,
-	REQUEST_PATCH,
-	ERROR_REQUEST_BAD_REQUEST_METHOD
-} HttpRequestMethod;
-
 #endif //__HTTPPARSERCOMMON_H_INCLUDED__
+
+
+
+
+
+
+
+
+
+

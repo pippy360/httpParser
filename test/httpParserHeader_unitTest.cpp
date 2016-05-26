@@ -190,3 +190,14 @@ TEST(getNextInnerHeaderStateAndByteType, simple_test_case){
 	}
 }
 
+
+TEST(testing, aFullBuffer){
+//	httpHeaderParserProcessBuffer(const HeaderParserState state,
+//			const char *packetBuffer, const int packetBufferLength,
+//			char **parserBufferEndPtr,
+//			HttpParserCallbackFunction *callbackFunctions,
+//			HttpRequestOrResponseType packetType)
+}
+
+
+
