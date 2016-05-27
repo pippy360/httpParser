@@ -12,7 +12,8 @@ void testNonZeroChunk(const char *chunk, int noOfLengthChars, int sizeOfChunk) {
 			CHUNKED_NEW_LINE_N, 1, };
 
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
-	ChunkedPayloadParserStateEnum nextStateVal = CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N;
+	ChunkedPayloadParserStateEnum nextStateVal =
+			CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N;
 	const char *chunkPos = chunk;
 
 	for (int i = 0; i < 6; i++) {
@@ -44,7 +45,8 @@ TEST(getNextStateAndByteTypeForChunkedPacket_testing, test_zero_chunk) {
 			CHUNKED_PAYLOAD_PACKET_END, CHUNKED_NEW_LINE_N, 1, };
 
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
-	ChunkedPayloadParserStateEnum nextStateVal = CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N;
+	ChunkedPayloadParserStateEnum nextStateVal =
+			CHUNKED_PAYLOAD_DATA_END_NEW_LINE_N;
 	const char *chunkPos = chunk;
 
 	for (int i = 0; i < 5; i++) {
@@ -66,8 +68,8 @@ void testNonZeroChunkWrapper(const char *chunk, const char *chunkSize) {
 	testNonZeroChunk(chunk, strlen(chunkSize), strtol(chunkSize, nullptr, 16));
 }
 
-PayloadParserStateChunkedPayloadState testStructState = { PAYLOAD_START,
-		"\0", 0, 0, 0, false, NO_ERROR};
+PayloadParserStateChunkedPayloadState testStructState = { PAYLOAD_START, "\0",
+		0, 0, 0, false, NO_ERROR };
 
 const char *testPkt =
 		"4\r\nWiki\r\n5\r\npedia\r\nE\r\nin\r\n\r\nchunks. \r\n11\r\n12345678901234567\r\n0\r\n\r\n";
@@ -94,7 +96,8 @@ void checkCommonErrorStateValues(
 TEST(getNextStateAndByteTypeForChunkedPacket_testing, test_error_states) {
 	PayloadParserStateChunkedPayloadState tempState = testStructState;
 	ReturnValueOfGetNextStateAndByteTypeForChunkedPacket ret;
-	ChunkedPayloadParserStateEnum nextStateVal = testStructState.chunkedStateEnum;
+	ChunkedPayloadParserStateEnum nextStateVal =
+			testStructState.chunkedStateEnum;
 
 	ret = getNextStateAndByteTypeForChunkedPacket(PAYLOAD_START, '\0', 0);
 	checkCommonErrorStateValues(ret);

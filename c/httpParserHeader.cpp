@@ -48,12 +48,15 @@ int _isCapitalLetter(const char nextByte) {
 ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineStateAndByteType(
 		StatusLineRequestHeaderParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
+	const ReturnValueOfGetNextRequestStatusLineStateAndByteType basicErroStruct =
+			{ ERROR_HEADER_REQUEST_PARSER, true,
+					FAILED_TO_PARSE_REQUEST_STATUS_LINE };
 	switch (stateVal) {
 	case HEADER_REQUEST_START:
 		if (_isCapitalLetter(nextByte)) {
 			return {HEADER_REQUEST_METHOD, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_METHOD:
 		if (_isCapitalLetter(nextByte)) {
@@ -61,13 +64,13 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 		} else if (nextByte == ' ') {
 			return {HEADER_REQUEST_SPACE_AFTER_METHOD, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_SPACE_AFTER_METHOD:
 		if (_isValidPathCharacter(nextByte)) {
 			return {HEADER_REQUEST_PATH, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_PATH:
 		if (_isValidPathCharacter(nextByte)) { //MUST NOT BE A SPACE (' ') !
@@ -75,43 +78,43 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 		} else if (nextByte == ' ') {
 			return {HEADER_SPACE_AFTER_PATH, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_SPACE_AFTER_PATH:
 		if (nextByte == 'H') {
 			return {HEADER_REQUEST_HTTP_VERSION_H, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_H:
 		if (nextByte == 'T') {
 			return {HEADER_REQUEST_HTTP_VERSION_T, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_T:
 		if (nextByte == 'T') {
 			return {HEADER_REQUEST_HTTP_VERSION_T_2, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_T_2:
 		if (nextByte == 'P') {
 			return {HEADER_REQUEST_HTTP_VERSION_P, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_P:
 		if (nextByte == '/') {
 			return {HEADER_REQUEST_HTTP_VERSION_SLASH, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_SLASH:
 		if (_isNumber(nextByte)) {
 			return {HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
@@ -119,13 +122,13 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 		} else if (nextByte == '.') {
 			return {HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
 			return {HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER:
 		if (_isNumber(nextByte)) {
@@ -133,21 +136,21 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 		} else if (nextByte == '\r') {
 			return {HEADER_REQUEST_NEW_LINE_R, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_NEW_LINE_R:
 		if (nextByte == '\n') {
 			return {HEADER_REQUEST_FINISHED_PARSING, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_REQUEST_FINISHED_PARSING:
-		//error
+		return basicErroStruct;
 	case ERROR_HEADER_REQUEST_PARSER:
-		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR};
+		return basicErroStruct;
 
 	default:
-		return {ERROR_HEADER_REQUEST_PARSER, false, NO_ERROR};
+		return basicErroStruct;
 	}
 	//The code never makes it here
 }
@@ -158,12 +161,81 @@ ReturnValueOfGetNextRequestStatusLineStateAndByteType getNextRequestStatusLineSt
 //handled in "getNextStateAndByteType" for performance reasons
 //the first few bytes of the packet are handled by bufferAndThenParseFirstFewBytes()
 //---------------------------------------------------------------
-int headerParserProcessRequestStatusLineByte(HeaderParserState *currState,
+int headerParserProcessRequestStatusLineByte(
+		HeaderParserStatusLineParserStateRequest *currState,
 		const char nextByte) {
 //---------------------------------------------------------------
 	if (currState == nullptr) {
 		//TODO return a bunch of a error stuff
 		return -1;
+	}
+
+	const ReturnValueOfGetNextRequestStatusLineStateAndByteType retStruct =
+			getNextRequestStatusLineStateAndByteType(currState->stateVal,
+					nextByte);
+
+	currState->stateVal = retStruct.statusLineParserStateEnum;
+
+	if (retStruct.isError) {
+		//TODO return a bunch of error stuff
+		return -1;
+	}
+
+	const StatusLineRequestHeaderParserStateEnum nextStateValue =
+			retStruct.statusLineParserStateEnum;
+	switch (nextStateValue) {
+	case HEADER_REQUEST_METHOD:
+	case HEADER_REQUEST_SPACE_AFTER_METHOD:
+	case HEADER_REQUEST_PATH:
+		//buffer
+		if (_addToHttpStateBufferWithErrorChecking(
+				currState->httpVersionFirstNumberBuffer,
+				&(currState->httpVersionFirstNumberBufferLength),
+				HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH,
+				nextByte) != 0) {
+			currState->isError = true;
+			currState->errorState = HTTP_VERSION_FIRST_NUMBER_BUFFER_FULL;
+			return -1;
+		}
+		break;
+	case HEADER_SPACE_AFTER_PATH:
+		//convert
+	case HEADER_REQUEST_HTTP_VERSION_FIRST_NUMBER:
+		//buffer
+		if (_addToHttpStateBufferWithErrorChecking(
+				currState->httpVersionFirstNumberBuffer,
+				&(currState->httpVersionFirstNumberBufferLength),
+				HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH,
+				nextByte) != 0) {
+			currState->isError = true;
+			currState->errorState = HTTP_VERSION_FIRST_NUMBER_BUFFER_FULL;
+			return -1;
+		}
+		break;
+	case HEADER_REQUEST_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
+		//convert
+		break;
+	case HEADER_REQUEST_HTTP_VERSION_SECOND_NUMBER:
+		//buffer
+		if (_addToHttpStateBufferWithErrorChecking(
+				currState->httpVersionSecondNumberBuffer,
+				&(currState->httpVersionSecondNumberBufferLength),
+				HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH,
+				nextByte) != 0) {
+			currState->isError = true;
+			currState->errorState = HTTP_VERSION_SECOND_NUMBER_BUFFER_FULL;
+			return -1;
+		}
+		break;
+	case HEADER_REQUEST_NEW_LINE_R:
+		//convert
+		printf("the http version is: http/%s.%s\n",
+				currState->httpVersionFirstNumberBuffer,
+				currState->httpVersionSecondNumberBuffer);
+		break;
+	default:
+		//TODO error stuff
+		;
 	}
 
 	return 0;
@@ -177,42 +249,45 @@ int headerParserProcessRequestStatusLineByte(HeaderParserState *currState,
 ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLineStateAndByteType(
 		StatusLineResponseHeaderParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
+	const ReturnValueOfGetNextResponseStatusLineStateAndByteType basicErroStruct =
+			{ ERROR_HEADER_RESPONSE_PARSER, true,
+					FAILED_TO_PARSE_RESPONSE_STATUS_LINE };
 	switch (stateVal) {
 	case HEADER_RESPONSE_START:
 		if (nextByte == 'H') {
 			return {HEADER_RESPONSE_HTTP_VERSION_H, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_H:
 		if (nextByte == 'T') {
 			return {HEADER_RESPONSE_HTTP_VERSION_T, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_T:
 		if (nextByte == 'T') {
 			return {HEADER_RESPONSE_HTTP_VERSION_T_2, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_T_2:
 		if (nextByte == 'P') {
 			return {HEADER_RESPONSE_HTTP_VERSION_P, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_P:
 		if (nextByte == '/') {
 			return {HEADER_RESPONSE_HTTP_VERSION_SLASH, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_SLASH:
 		if (_isNumber(nextByte)) {
 			return {HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
@@ -220,13 +295,13 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		} else if (nextByte == '.') {
 			return {HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_DOT_AFTER_FIRST_NUMBER:
 		if (_isNumber(nextByte)) {
 			return {HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_HTTP_VERSION_SECOND_NUMBER:
 		if (_isNumber(nextByte)) {
@@ -234,13 +309,13 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		} else if (nextByte == ' ') {
 			return {HEADER_RESPONSE_SPACE_AFTER_VERSION, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_SPACE_AFTER_VERSION:
 		if (_isNumber(nextByte)) {
 			return {HEADER_RESPONSE_STATUS_CODE, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_STATUS_CODE:
 		//this should probably fource the status code to be 3 chars long
@@ -249,7 +324,7 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		} else if (nextByte == ' ') {
 			return {HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_SPACE_AFTER_STATUS_CODE: //the reason phrase can be empty
 	case HEADER_RESPONSE_REASON_PHRASE:
@@ -259,21 +334,20 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 		} else if (nextByte == '\r') {
 			return {HEADER_RESPONSE_NEW_LINE_R, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_NEW_LINE_R:
 		if (nextByte == '\n') {
 			return {HEADER_RESPONSE_FINISHED_PARSING, false, NO_ERROR};
 		} else {
-
+			return basicErroStruct;
 		}
 	case HEADER_RESPONSE_FINISHED_PARSING:
-		//return error
+		return basicErroStruct;
 	case ERROR_HEADER_RESPONSE_PARSER:
-		//return error
+		return basicErroStruct;
 	default:
-		//return error
-		;
+		return basicErroStruct;
 	}
 	//The code never makes it here
 }
@@ -284,7 +358,8 @@ ReturnValueOfGetNextResponseStatusLineStateAndByteType getNextResponseStatusLine
 //handled in "getNextStateAndByteType" for performance reasons
 //the first few bytes of the packet are handled by bufferAndThenParseFirstFewBytes()
 //---------------------------------------------------------------
-int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateResponse *currState,
+int headerParserProcessResponseStatusLineByte(
+		HeaderParserStatusLineParserStateResponse *currState,
 		const char nextByte) {
 //---------------------------------------------------------------
 	if (currState == nullptr) {
@@ -293,10 +368,10 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 	}
 
 	const ReturnValueOfGetNextResponseStatusLineStateAndByteType retStruct =
-			getNextResponseStatusLineStateAndByteType(
-					currState->statusLineResponseParserState, nextByte);
+			getNextResponseStatusLineStateAndByteType(currState->stateVal,
+					nextByte);
 
-	//currState->stateVal = retStruct.statusLineParserStateEnum;
+	currState->stateVal = retStruct.statusLineParserStateEnum;
 
 	if (retStruct.isError) {
 		//TODO return a bunch of error stuff
@@ -311,7 +386,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpVersionFirstNumberBuffer,
 				&(currState->httpVersionFirstNumberBufferLength),
-				HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH, nextByte) != 0) {
+				HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH,
+				nextByte) != 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_VERSION_FIRST_NUMBER_BUFFER_FULL;
 			return -1;
@@ -325,8 +401,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpVersionSecondNumberBuffer,
 				&(currState->httpVersionSecondNumberBufferLength),
-				HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH, nextByte) != 0)
-		{
+				HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH,
+				nextByte) != 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_VERSION_SECOND_NUMBER_BUFFER_FULL;
 			return -1;
@@ -343,8 +419,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpStatusCodeBuffer,
 				&(currState->httpStatusCodeBufferLength),
-				HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH, nextByte) != 0)
-		{
+				HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH, nextByte)
+				!= 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_STATUS_CODE_BUFFER_FULL;
 			return -1;
@@ -358,7 +434,8 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->httpReasonPhraseBuffer,
 				&(currState->httpReasonPhraseBufferLength),
-				HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH, nextByte) != 0) {
+				HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH, nextByte)
+				!= 0) {
 			currState->isError = true;
 			currState->errorState = HTTP_REASON_PHRASE_BUFFER_FULL;
 			return -1;
@@ -383,13 +460,14 @@ int headerParserProcessResponseStatusLineByte(HeaderParserStatusLineParserStateR
 ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteType(
 		InnerHeadersParserStateEnum stateVal, const char nextByte) {
 //---------------------------------------------------------------
-
+	const ReturnValueOfGetNextInnerHeaderStateAndByteType basicErroStruct = {
+			ERROR_INNER_HEADER_PARSER, true, FAILED_TO_PARSE_INNER_HEADERS };
 	switch (stateVal) {
 	case INNER_HEADER_START:
 		if (_isAlphaNumericUppercaseIncluded(nextByte)) {
 			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_NAME:
 		if (nextByte == ':') {
@@ -397,7 +475,7 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 		} else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
 			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_COLON:
 		//allow empty values
@@ -408,13 +486,13 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 				|| nextByte == ' ') { //TODO || nextByte == ' ' shouldn't be there!
 			return {INNER_HEADER_VALUE, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_NEW_LINE_R:
 		if (nextByte == '\n') {
 			return {INNER_HEADER_NEW_LINE_N, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_NEW_LINE_N:
 		if (nextByte == '\r') {
@@ -422,21 +500,20 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 		} else if (_isAlphaNumericUppercaseIncluded(nextByte)) {
 			return {INNER_HEADER_NAME, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_FINAL_NEW_LINE_R:
 		if (nextByte == '\n') {
 			return {INNER_HEADER_FINISHED_PARSING, false, NO_ERROR};
 		} else {
-			//error
+			return basicErroStruct;
 		}
 	case INNER_HEADER_FINISHED_PARSING:
-		//error
+		return basicErroStruct;
 	case ERROR_INNER_HEADER_PARSER:
-		//error
-		break;
+		return basicErroStruct;
 	default:
-		;
+		return basicErroStruct;
 	}
 	//The code never makes it here
 }
@@ -446,7 +523,7 @@ ReturnValueOfGetNextInnerHeaderStateAndByteType getNextInnerHeaderStateAndByteTy
 //this function acts like a wrapper for that function, it only handles some logic that isn't
 //handled in "getNextStateAndByteType" for performance reasons
 //---------------------------------------------------------------
-int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
+int headerParserProcessInnerHeaderByte(InnerHeadersParserState *currState,
 		const char nextByte) {
 //---------------------------------------------------------------
 
@@ -457,23 +534,37 @@ int headerParserProcessInnerHeaderByte(HeaderParserState *currState,
 
 	//const HeaderParserStateEnum nextStateValue;
 	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct =
-			getNextInnerHeaderStateAndByteType(
-					currState->innerHeadersParserState, nextByte);
-	currState->innerHeadersParserState = retStruct.innerHeadersParserState;
+			getNextInnerHeaderStateAndByteType(currState->stateVal, nextByte);
+	currState->stateVal = retStruct.innerHeadersParserStateEnum;
 
-	switch (retStruct.innerHeadersParserState) {
+	switch (retStruct.innerHeadersParserStateEnum) {
 	case INNER_HEADER_NAME:
+		//buffer
+		if (_addToHttpStateBufferWithErrorChecking(currState->innerHeaderName,
+				&(currState->innerHeaderNameLength),
+				MAX_SIZE_OF_INNER_HEADER_NAME, nextByte) != 0) {
+			currState->isError = true;
+			currState->errorState = HTTP_INNER_HEADER_NAME_BUFFER_FULL;
+			return -1;
+		}
+		break;
 	case INNER_HEADER_COLON:
-		//buffer
-		break;
+		//convert
 	case INNER_HEADER_VALUE:
-	case HEADER_RESPONSE_NEW_LINE_R:
 		//buffer
+		if (_addToHttpStateBufferWithErrorChecking(currState->innerHeaderValue,
+				&(currState->innerHeaderValueLength),
+				MAX_SIZE_OF_INNER_HEADER_VALUE, nextByte) != 0) {
+			currState->isError = true;
+			currState->errorState = HTTP_INNER_HEADER_VALUE_BUFFER_FULL;
+			return -1;
+		}
 		break;
+	case HEADER_RESPONSE_NEW_LINE_R:
+		//convert
 	case INNER_HEADER_FINISHED_PARSING:
-		break;
 	default:
-		break;
+		;
 	}
 
 	//handle call back functions
@@ -522,11 +613,21 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 	for (i = 0; i < packetBufferLength; i++) {
 		switch (state.currentActiveHeaderParser) {
 		case HEADER_PARSER_STATUS_LINE:
-			headerParserProcessRequestStatusLineByte(&nextState,
-					packetBuffer[i]);
+			if (state.statusLineParserState.currentActiveStatusLineParser
+					== HEADER_PARSER_STATUS_LINE_PARSER_REQUEST) {
+				headerParserProcessRequestStatusLineByte(
+						&(nextState.statusLineParserState.requestStatusLineState),
+						packetBuffer[i]);
+			} else if (state.statusLineParserState.currentActiveStatusLineParser
+					== HEADER_PARSER_STATUS_LINE_PARSER_RESPONSE) {
+				headerParserProcessResponseStatusLineByte(
+						&(nextState.statusLineParserState.responseStatusLineState),
+						packetBuffer[i]);
+			}
 			break;
 		case HEADER_PARSER_INNER_HEADERS:
-			headerParserProcessInnerHeaderByte(&nextState, packetBuffer[i]);
+			headerParserProcessInnerHeaderByte(
+					&(nextState.innerHeadersParserState), packetBuffer[i]);
 			break;
 		default:
 			//TODO error

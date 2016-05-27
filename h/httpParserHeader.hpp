@@ -9,7 +9,8 @@
 #define HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH 	10
 #define HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH			4
 #define HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH			20
-
+#define MAX_SIZE_OF_INNER_HEADER_NAME								1000
+#define MAX_SIZE_OF_INNER_HEADER_VALUE								1000
 
 typedef enum {
 	HEADER_RESPONSE_START,
@@ -81,7 +82,7 @@ typedef enum{
 } HttpRequestOrResponseType;
 
 typedef struct {
-	StatusLineRequestHeaderParserStateEnum statusLineRequestParserState;//state enum
+	StatusLineRequestHeaderParserStateEnum stateVal;//state enum
 	int httpVersionFirstNumber;
 	int httpVersionSecondNumber;
 	//method
@@ -106,25 +107,25 @@ typedef struct {
 } HeaderParserStatusLineParserStateRequest;
 
 typedef struct {
-	StatusLineResponseHeaderParserStateEnum statusLineResponseParserState;//state enum
+	StatusLineResponseHeaderParserStateEnum stateVal;//state enum
 	int httpVersionFirstNumber;
 	int httpVersionSecondNumber;
 	//http version buffers
 	char httpVersionFirstNumberBuffer[HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH];
 	int httpVersionFirstNumberBufferLength;
-	const int maxSizeOfHttpVersionFirstNumberBuffer = HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH;
+	//const int maxSizeOfHttpVersionFirstNumberBuffer = HTTP_HEADER_PARSER_MAX_HTTP_FIRST_NUMBER_BUFFER_LENGTH;
 
 	char httpVersionSecondNumberBuffer[HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH];
 	int httpVersionSecondNumberBufferLength;
-	const int maxSizeOfHttpVersionSecondNumberBuffer = HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH;
+	//const int maxSizeOfHttpVersionSecondNumberBuffer = HTTP_HEADER_PARSER_MAX_HTTP_SECOND_NUMBER_BUFFER_LENGTH;
 	//status code
 	char httpStatusCodeBuffer[HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH];
 	int httpStatusCodeBufferLength;
-	const int maxSizeOfHttpStatusCodeBuffer = HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH;
+	//const int maxSizeOfHttpStatusCodeBuffer = HTTP_HEADER_PARSER_MAX_STATUS_CODE_BUFFER_LENGTH;
 	//reason phrase
 	char httpReasonPhraseBuffer[HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH];
 	int httpReasonPhraseBufferLength;
-	const int maxSizeOfHttpReasonPhraseBuffer = HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH;
+	//const int maxSizeOfHttpReasonPhraseBuffer = HTTP_HEADER_PARSER_MAX_REASON_PHRASE_BUFFER_LENGTH;
 	//errors
 	int isError;
 	HTTPParserErrorState errorState;
@@ -146,12 +147,24 @@ typedef enum {
 	HEADER_PARSER_INNER_HEADERS,
 } CurrentActiveHeaderParser;
 
+
+typedef struct {
+	InnerHeadersParserStateEnum stateVal;//state enum
+	char innerHeaderName[MAX_SIZE_OF_INNER_HEADER_NAME];
+	int innerHeaderNameLength;
+	//const int maxSizeOfInnerHeaderName = MAX_SIZE_OF_INNER_HEADER_NAME;
+	char innerHeaderValue[MAX_SIZE_OF_INNER_HEADER_VALUE];
+	int innerHeaderValueLength;
+	//const int maxSizeOfInnerHeaderValue = MAX_SIZE_OF_INNER_HEADER_VALUE;
+	//errors
+	int isError;
+	HTTPParserErrorState errorState;
+} InnerHeadersParserState;
+
 typedef struct {
 	CurrentActiveHeaderParser currentActiveHeaderParser;
-	InnerHeadersParserStateEnum innerHeadersParserState;
-	int innerHeaderNameLength;
-	char *innerHeaderValueStart;
-	int innerHeaderValueLength;
+	HeaderParserStatusLineParserState statusLineParserState;
+	InnerHeadersParserState innerHeadersParserState;
 	//errors
 	int isError;
 	HTTPParserErrorState errorState;
@@ -173,7 +186,7 @@ typedef struct {
 } ReturnValueOfGetNextRequestStatusLineStateAndByteType;
 
 typedef struct {
-	InnerHeadersParserStateEnum innerHeadersParserState;
+	InnerHeadersParserStateEnum innerHeadersParserStateEnum;
 	//RequestStatusLineByteType byteType; byte type is not used for the moment
 	int isError;
 	HTTPParserErrorState errorState;

@@ -144,9 +144,9 @@ TEST(getNextInnerHeaderStateAndByteType, simple_test_case){
 		for(int i = 0; i < 7; i++){
 			for(int j=0; j < validTypes[i*2 + 1]; j++){
 				ret = getNextInnerHeaderStateAndByteType(nextStateVal, *currPos);
-				nextStateVal = ret.innerHeadersParserState;
+				nextStateVal = ret.innerHeadersParserStateEnum;
 
-				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserState);
+				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserStateEnum);
 				EXPECT_EQ(false				, ret.isError);
 
 				currPos++;
@@ -179,9 +179,9 @@ TEST(getNextInnerHeaderStateAndByteType, simple_test_case){
 		for(int i = 0; i < 11; i++){
 			for(int j=0; j < validTypes[i*2 + 1]; j++){
 				ret = getNextInnerHeaderStateAndByteType(nextStateVal, *currPos);
-				nextStateVal = ret.innerHeadersParserState;
+				nextStateVal = ret.innerHeadersParserStateEnum;
 
-				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserState);
+				EXPECT_EQ(validTypes[i*2]	, ret.innerHeadersParserStateEnum);
 				EXPECT_EQ(false				, ret.isError);
 
 				currPos++;
