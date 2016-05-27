@@ -135,7 +135,7 @@ int chunkedPayloadParserProcessByte(PayloadParserStateChunkedPayloadState *currS
 		if (_addToHttpStateBufferWithErrorChecking(
 				currState->chunkSizeStrBuffer,
 				&(currState->chunkSizeStrLength),
-				MAX_CHUNK_SIZE_STR_BUFFER_LENGTH, nextByte) != 0)
+				MAX_CHUNK_SIZE_STR_BUFFER_LENGTH, nextByte) != 0)//FIXME: REPLACE MAX_CHUNK_SIZE_STR_BUFFER_LENGTH with currSate->max length!!!
 		{
 			currState->isError = true;
 			currState->errorState = CHUNK_SIZE_STRING_BUFFER_FULL;
