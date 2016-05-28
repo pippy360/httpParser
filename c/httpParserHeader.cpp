@@ -175,9 +175,10 @@ int headerParserProcessRequestStatusLineByte(
 					nextByte);
 
 	currState->stateVal = retStruct.statusLineParserStateEnum;
+	currState->isError = retStruct.isError;
+	currState->errorState = retStruct.errorState;
 
 	if (retStruct.isError) {
-		//TODO return a bunch of error stuff
 		return -1;
 	}
 
@@ -372,9 +373,10 @@ int headerParserProcessResponseStatusLineByte(
 					nextByte);
 
 	currState->stateVal = retStruct.statusLineParserStateEnum;
+	currState->isError = retStruct.isError;
+	currState->errorState = retStruct.errorState;
 
 	if (retStruct.isError) {
-		//TODO return a bunch of error stuff
 		return -1;
 	}
 
@@ -535,7 +537,14 @@ int headerParserProcessInnerHeaderByte(InnerHeadersParserState *currState,
 	//const HeaderParserStateEnum nextStateValue;
 	const ReturnValueOfGetNextInnerHeaderStateAndByteType retStruct =
 			getNextInnerHeaderStateAndByteType(currState->stateVal, nextByte);
+
 	currState->stateVal = retStruct.innerHeadersParserStateEnum;
+	currState->isError = retStruct.isError;
+	currState->errorState = retStruct.errorState;
+
+	if (retStruct.isError) {
+		return -1;
+	}
 
 	switch (retStruct.innerHeadersParserStateEnum) {
 	case INNER_HEADER_NAME:
@@ -609,25 +618,52 @@ HeaderParserState httpHeaderParserProcessBuffer(const HeaderParserState state,
 	HeaderParserState nextState = state;
 
 	int i;
-
+	const char *currPtr;
 	for (i = 0; i < packetBufferLength; i++) {
-		switch (state.currentActiveHeaderParser) {
+		//DEBUG
+		currPtr = packetBuffer + i;
+		//-DEBUGE
+		switch (nextState.currentActiveHeaderParser) {
 		case HEADER_PARSER_STATUS_LINE:
-			if (state.statusLineParserState.currentActiveStatusLineParser
+			if (nextState.statusLineParserState.currentActiveStatusLineParser
 					== HEADER_PARSER_STATUS_LINE_PARSER_REQUEST) {
 				headerParserProcessRequestStatusLineByte(
 						&(nextState.statusLineParserState.requestStatusLineState),
 						packetBuffer[i]);
-			} else if (state.statusLineParserState.currentActiveStatusLineParser
+				//error handling
+				nextState.isError 		= nextState.statusLineParserState.requestStatusLineState.isError;
+				nextState.errorState 	= nextState.statusLineParserState.requestStatusLineState.errorState;
+
+				//handle the end case
+				if(nextState.statusLineParserState.requestStatusLineState.stateVal == HEADER_REQUEST_FINISHED_PARSING){
+					nextState.currentActiveHeaderParser = HEADER_PARSER_INNER_HEADERS;
+				}
+			} else if (nextState.statusLineParserState.currentActiveStatusLineParser
 					== HEADER_PARSER_STATUS_LINE_PARSER_RESPONSE) {
 				headerParserProcessResponseStatusLineByte(
 						&(nextState.statusLineParserState.responseStatusLineState),
 						packetBuffer[i]);
+				//error handling
+				nextState.isError 		= nextState.statusLineParserState.responseStatusLineState.isError;
+				nextState.errorState 	= nextState.statusLineParserState.responseStatusLineState.errorState;
+
+				//handle the end case
+				if(nextState.statusLineParserState.responseStatusLineState.stateVal == HEADER_RESPONSE_FINISHED_PARSING){
+					nextState.currentActiveHeaderParser = HEADER_PARSER_INNER_HEADERS;
+				}
 			}
 			break;
 		case HEADER_PARSER_INNER_HEADERS:
 			headerParserProcessInnerHeaderByte(
 					&(nextState.innerHeadersParserState), packetBuffer[i]);
+			//error handling
+			nextState.isError 		= nextState.innerHeadersParserState.isError;
+			nextState.errorState 	= nextState.innerHeadersParserState.errorState;
+
+			//parse any headers
+			if(true){
+				//todo
+			}
 			break;
 		default:
 			//TODO error

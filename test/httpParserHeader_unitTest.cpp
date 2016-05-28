@@ -192,11 +192,12 @@ TEST(getNextInnerHeaderStateAndByteType, simple_test_case){
 
 
 TEST(testing, aFullBuffer){
-//	httpHeaderParserProcessBuffer(const HeaderParserState state,
-//			const char *packetBuffer, const int packetBufferLength,
-//			char **parserBufferEndPtr,
-//			HttpParserCallbackFunction *callbackFunctions,
-//			HttpRequestOrResponseType packetType)
+	HeaderParserState state = headerParserState_request_init;
+	const char *packet = "GET / HTTP/1.1\r\ntom: somethingh\r\nfuckingcontentlength";
+	state = httpHeaderParserProcessBuffer(state, packet, strlen(packet), nullptr, nullptr, HTTP_PACKET_TYPE_REQUEST);
+	if(state.isError == true){
+		FAIL();
+	}
 }
 
 
