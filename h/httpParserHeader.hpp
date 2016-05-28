@@ -195,12 +195,20 @@ typedef struct {
 	int endRange;
 } RequestContentRangeInfo;
 
+const RequestContentRangeInfo requestContentRangeInfo_init = {
+	0,0,0,0
+};
+
 typedef struct {
 	//the returned byte range
 	bool isRangeHeaderSet;
 	int startRange;
 	int endRange;
 } ResponseContentRangeInfo;
+
+const ResponseContentRangeInfo responseContentRangeInfo_init = {
+	0,0,0
+};
 
 typedef struct {
 	CurrentActiveHeaderParser currentActiveHeaderParser;
@@ -220,6 +228,9 @@ const HeaderParserState headerParserState_request_init = {
 		HEADER_PARSER_STATUS_LINE,
 		headerParserStatusLineParserState_request_init,
 		innerHeadersParserState_init,
+		HTTP_PAYLOAD_UNKNOWN,
+		requestContentRangeInfo_init,
+		responseContentRangeInfo_init,
 		false,
 		NO_ERROR
 };
@@ -228,6 +239,9 @@ const HeaderParserState headerParserState_response_init = {
 		HEADER_PARSER_STATUS_LINE,
 		headerParserStatusLineParserState_response_init,
 		innerHeadersParserState_init,
+		HTTP_PAYLOAD_UNKNOWN,
+		requestContentRangeInfo_init,
+		responseContentRangeInfo_init,
 		false,
 		NO_ERROR
 };

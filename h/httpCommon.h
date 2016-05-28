@@ -24,6 +24,7 @@ typedef enum {
 typedef enum {
 	HTTP_PAYLOAD_CHUNKED,
 	HTTP_PAYLOAD_CONTENT_LENGTH,
+	HTTP_PAYLOAD_UNKNOWN
 } HttpPayloadEncoding;
 
 typedef struct {
